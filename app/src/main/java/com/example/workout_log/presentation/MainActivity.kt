@@ -16,11 +16,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.workout_log.presentation.add_exercise.AddExerciseScreen
 import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.presentation.calendar.CalendarScreen
 import com.example.workout_log.presentation.workoutlog.WorkoutLogScreen
 import com.example.workout_log.ui.theme.WorkoutlogTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +49,9 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(route = Screen.CalendarScreen.route) {
                                 CalendarScreen(navController = navController)
+                            }
+                            composable(route = Screen.AddExerciseScreen.route) {
+                                AddExerciseScreen(navController = navController)
                             }
                         }
                     }

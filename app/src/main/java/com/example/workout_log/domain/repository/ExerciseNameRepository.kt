@@ -1,10 +1,8 @@
 package com.example.workout_log.domain.repository
 
-import com.example.workout_log.domain.model.ExerciseName
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.example.workout_log.domain.model.ExerciseTypeWithNames
 import kotlinx.coroutines.flow.Flow
 
 interface ExerciseNameRepository {
-    @ExperimentalCoroutinesApi
-    fun getExerciseNames(exerciseTypeId: Int): Flow<List<ExerciseName>>
+    fun getExerciseTypeWithNames(exerciseTypeId: Int): Flow<List<ExerciseTypeWithNames>>
 }

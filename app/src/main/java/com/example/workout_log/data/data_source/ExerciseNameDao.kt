@@ -12,7 +12,7 @@ interface ExerciseNameDao {
 
     @Transaction
     @Query("SELECT * FROM ExerciseTypes WHERE ID = :exerciseTypeId")
-    fun getExerciseTypesWithNames(exerciseTypeId: Int): Flow<List<ExerciseTypeWithNames>>
+    fun getExerciseTypeWithNames(exerciseTypeId: Int): Flow<List<ExerciseTypeWithNames>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(exerciseNames: List<ExerciseName>)
