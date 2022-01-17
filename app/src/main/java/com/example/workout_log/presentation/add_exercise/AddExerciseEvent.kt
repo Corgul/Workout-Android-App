@@ -6,4 +6,5 @@ import com.example.workout_log.domain.model.ExerciseType
 sealed class AddExerciseEvent {
     data class ExerciseTypeClicked(val exerciseType: ExerciseType): AddExerciseEvent()
     data class ExerciseNameClicked(val exerciseName: ExerciseName): AddExerciseEvent()
+    object OnBackPressed: AddExerciseEvent()
 }

@@ -38,12 +38,20 @@ class AddExerciseViewModel @Inject constructor(
             is AddExerciseEvent.ExerciseTypeClicked -> {
                 getExerciseNames(event.exerciseType.exerciseTypeId).onEach { exerciseNamesList ->
                     _state.value = state.value.copy(
-                        exerciseNames = exerciseNamesList
+                        exerciseNames = exerciseNamesList,
+                        exerciseNamesVisibility = true
                     )
                 }.launchIn(viewModelScope)
             }
             is AddExerciseEvent.ExerciseNameClicked -> {
                 onExerciseNameClicked(event.exerciseName)
+            }
+            is AddExerciseEvent.OnBackPressed -> {
+                if (state.value.exerciseNamesVisibility) {
+                    _state.value = state.value.copy(
+                        exerciseNamesVisibility = false
+                    )
+                }
             }
         }
     }
