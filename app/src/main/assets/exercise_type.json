@@ -1,0 +1,34 @@
+[
+  {
+    "exerciseTypeId": 1,
+    "exerciseType": "Chest"
+  },
+  {
+    "exerciseTypeId": 2,
+    "exerciseType": "Biceps"
+  },
+  {
+    "exerciseTypeId": 3,
+    "exerciseType": "Back"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseType": "Legs"
+  },
+  {
+    "exerciseTypeId": 5,
+    "exerciseType": "Shoulders"
+  },
+  {
+    "exerciseTypeId": 6,
+    "exerciseType": "Triceps"
+  },
+  {
+    "exerciseTypeId": 7,
+    "exerciseType": "Abs"
+  },
+  {
+    "exerciseTypeId": 8,
+    "exerciseType": "Cardio"
+  }
+]

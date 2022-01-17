@@ -1,0 +1,132 @@
+[
+  {
+    "exerciseTypeId": 1,
+    "exerciseName": "Barbell Bench Press",
+    "exerciseTypeName": "Chest"
+  },
+  {
+    "exerciseTypeId": 1,
+    "exerciseName": "Incline Barbell Bench Press",
+    "exerciseTypeName": "Chest"
+  },
+  {
+    "exerciseTypeId": 1,
+    "exerciseName": "Decline Barbell Bench Press",
+    "exerciseTypeName": "Chest"
+  },
+  {
+    "exerciseTypeId": 1,
+    "exerciseName": "Dumbbell Bench Press",
+    "exerciseTypeName": "Chest"
+  },
+  {
+    "exerciseTypeId": 1,
+    "exerciseName": "Incline Dumbbell Bench Press",
+    "exerciseTypeName": "Chest"
+  },
+  {
+    "exerciseTypeId": 2,
+    "exerciseName": "Dumbbell Curl",
+    "exerciseTypeName": "Biceps"
+  },
+  {
+    "exerciseTypeId": 2,
+    "exerciseName": "Hammer Dumbbell Curl",
+    "exerciseTypeName": "Biceps"
+  },
+  {
+    "exerciseTypeId": 2,
+    "exerciseName": "Barbell Curl",
+    "exerciseTypeName": "Biceps"
+  },
+  {
+    "exerciseTypeId": 3,
+    "exerciseName": "Lat Pull Down",
+    "exerciseTypeName": "Back"
+  },
+  {
+    "exerciseTypeId": 3,
+    "exerciseName": "Pull Up",
+    "exerciseTypeName": "Back"
+  },
+  {
+    "exerciseTypeId": 3,
+    "exerciseName": "Seated Cable Row",
+    "exerciseTypeName": "Back"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseName": "Deadlift",
+    "exerciseTypeName": "Legs"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseName": "Romanian Deadlift",
+    "exerciseTypeName": "Legs"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseName": "Leg Press",
+    "exerciseTypeName": "Legs"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseName": "Barbell Squat",
+    "exerciseTypeName": "Legs"
+  },
+  {
+    "exerciseTypeId": 5,
+    "exerciseName": "Overhead Press",
+    "exerciseTypeName": "Shoulders"
+  },
+  {
+    "exerciseTypeId": 5,
+    "exerciseName": "Standing Dumbbell Overhead Press",
+    "exerciseTypeName": "Shoulders"
+  },
+  {
+    "exerciseTypeId": 5,
+    "exerciseName": "Dumbbell Lateral Raise",
+    "exerciseTypeName": "Shoulders"
+  },
+  {
+    "exerciseTypeId": 6,
+    "exerciseName": "Cable Tricep Extension",
+    "exerciseTypeName": "Triceps"
+  },
+  {
+    "exerciseTypeId": 6,
+    "exerciseName": "Bench Dips",
+    "exerciseTypeName": "Triceps"
+  },
+  {
+    "exerciseTypeId": 6,
+    "exerciseName": "Lying Barbell Extension",
+    "exerciseTypeName": "Triceps"
+  },
+  {
+    "exerciseTypeId": 7,
+    "exerciseName": "Crunch",
+    "exerciseTypeName": "Abs"
+  },
+  {
+    "exerciseTypeId": 7,
+    "exerciseName": "Plank",
+    "exerciseTypeName": "Abs"
+  },
+  {
+    "exerciseTypeId": 7,
+    "exerciseName": "Lying Leg Raise",
+    "exerciseTypeName": "Abs"
+  },
+  {
+    "exerciseTypeId": 8,
+    "exerciseName": "Treadmill",
+    "exerciseTypeName": "Cardio"
+  },
+  {
+    "exerciseTypeId": 8,
+    "exerciseName": "Bicycle",
+    "exerciseTypeName": "Cardio"
+  }
+]
