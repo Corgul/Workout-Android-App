@@ -12,10 +12,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.workout_log.domain.util.WorkoutAppLogger
 import com.example.workout_log.presentation.add_exercise.AddExerciseScreen
 import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.presentation.calendar.CalendarScreen
@@ -41,16 +44,32 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.WorkoutLogScreen.route,
+                            startDestination = Screen.WorkoutLogScreen.route + "?newlyAddedWorkoutId={newlyAddedWorkoutId}",
                             Modifier.padding(innerPadding)
                         ) {
-                            composable(route = Screen.WorkoutLogScreen.route) {
+                            composable(
+                                route = Screen.WorkoutLogScreen.route + "?newlyAddedWorkoutId={newlyAddedWorkoutId}",
+                                arguments = listOf(
+                                    navArgument("newlyAddedWorkoutId") {
+                                        type = NavType.LongType
+                                        defaultValue = -1
+                                    }
+                                )
+                            ) {
                                 WorkoutLogScreen(navController = navController)
                             }
                             composable(route = Screen.CalendarScreen.route) {
                                 CalendarScreen(navController = navController)
                             }
-                            composable(route = Screen.AddExerciseScreen.route) {
+                            composable(
+                                route = Screen.AddExerciseScreen.route + "?workoutId={workoutId}",
+                                arguments = listOf(
+                                    navArgument("workoutId") {
+                                        type = NavType.LongType
+                                        defaultValue = -1
+                                    }
+                                )
+                            ) {
                                 AddExerciseScreen(navController = navController)
                             }
                         }
@@ -59,11 +78,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
 }
 
 @Composable
@@ -79,7 +93,8 @@ fun BottomNav(navController: NavController) {
             BottomNavigationItem(
                 icon = { Icon(screen.icon, contentDescription = null) },
                 label = { Text(screen.screenName) },
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                // Trim off the beginning of the string so even with arguments it will match and show as selected
+                selected = currentDestination?.hierarchy?.any { it.route?.substringBefore("?") == screen.route } == true,
                 onClick = {
                     navController.navigate(screen.route) {
                         // Pop up to the start destination of the graph to
@@ -97,13 +112,5 @@ fun BottomNav(navController: NavController) {
                 }
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    WorkoutlogTheme {
-        Greeting("Android")
     }
 }

@@ -11,7 +11,11 @@ class WorkoutRepositoryImpl @Inject constructor(
 ) : WorkoutRepository {
     override suspend fun doesWorkoutExist(date: LocalDate): Boolean = workoutDao.doesWorkoutExistForDate(date)
 
+    override suspend fun doesWorkoutExist(workoutId: Long): Boolean = workoutDao.doesWorkoutExist(workoutId)
+
     override suspend fun getWorkoutForDate(date: LocalDate): Workout = workoutDao.getWorkoutForDate(date)
 
     override suspend fun addWorkout(workout: Workout) = workoutDao.insertWorkout(workout)
+
+    override suspend fun getWorkoutForId(workoutId: Long) = workoutDao.getWorkoutForId(workoutId)
 }
