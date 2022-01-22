@@ -10,7 +10,7 @@ interface WorkoutRepository {
 
     suspend fun getWorkoutForDate(date: LocalDate): Workout?
 
-    suspend fun getWorkoutForId(workoutId: Long): Workout?
+    suspend fun getWorkoutForId(workoutId: Long): Workout
 
-    suspend fun addWorkout(workout: Workout)
+    suspend fun addWorkout(workout: Workout): Long
 }

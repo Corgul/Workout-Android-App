@@ -7,15 +7,8 @@ import com.example.workout_log.domain.util.formatDate
 import java.time.LocalDate
 import javax.inject.Inject
 
-class GetWorkout @Inject constructor(
+class GetWorkoutById @Inject constructor(
     private val workoutRepository: WorkoutRepository
 ) {
-    suspend operator fun invoke(date: LocalDate? = null, workoutId: Long? = null): Workout? {
-        if (workoutId != null) {
-            return workoutRepository.getWorkoutForId(workoutId)
-        } else if (date != null) {
-            return workoutRepository.getWorkoutForDate(date)
-        }
-        return null
-    }
+    suspend operator fun invoke(workoutId: Long): Workout = workoutRepository.getWorkoutForId(workoutId)
 }

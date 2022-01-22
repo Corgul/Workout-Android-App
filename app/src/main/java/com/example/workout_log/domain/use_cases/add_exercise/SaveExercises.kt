@@ -2,21 +2,21 @@ package com.example.workout_log.domain.use_cases.add_exercise
 
 import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseName
-import com.example.workout_log.domain.model.Workout
+import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.repository.ExerciseRepository
-import com.example.workout_log.domain.util.WorkoutAppLogger
+import com.example.workout_log.domain.repository.ExerciseSetRepository
 import javax.inject.Inject
 
 class SaveExercises @Inject constructor(
-    private val exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository,
+    private val exerciseSetRepository: ExerciseSetRepository
 ) {
-    suspend operator fun invoke(workout: Workout?, exerciseNameList: List<ExerciseName>) {
-        if (workout == null) {
-            WorkoutAppLogger.d("Workout is null and should not be null at this point")
-            return
-        }
+    suspend operator fun invoke(workoutId: Long, exerciseNameList: List<ExerciseName>) {
         // Save the list of exercises
-        val exerciseList = Exercise.from(workout, exerciseNameList)
-        exerciseRepository.addExercisesForWorkout(exerciseList)
+        val exerciseList = Exercise.from(workoutId, exerciseNameList)
+        val insertedExerciseIds = exerciseRepository.insertExercises(exerciseList)
+        // Save the list of exercise sets corresponding to the new exercises
+        val setsList = ExerciseSet.from(insertedExerciseIds)
+        exerciseSetRepository.insertSets(setsList)
     }
 }

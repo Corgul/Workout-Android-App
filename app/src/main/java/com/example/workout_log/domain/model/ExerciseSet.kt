@@ -2,6 +2,7 @@ package com.example.workout_log.domain.model
 
 import androidx.annotation.NonNull
 import androidx.room.*
+import androidx.room.ForeignKey.CASCADE
 
 @Entity(
     tableName = "ExerciseSets",
@@ -9,7 +10,9 @@ import androidx.room.*
         ForeignKey(
             entity = Exercise::class,
             parentColumns = ["ExerciseID"],
-            childColumns = ["ExerciseID"]
+            childColumns = ["ExerciseID"],
+            onDelete = CASCADE,
+            onUpdate = CASCADE
         )
     ],
     indices = [Index("ExerciseID")]
@@ -30,5 +33,9 @@ data class ExerciseSet(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "ExerciseSetID")
     @NonNull
-    var setId: Long = 0
+    var setId: Long = 0L
+
+    companion object {
+        fun from(exerciseIds: List<Long>): List<ExerciseSet> = exerciseIds.map { ExerciseSet(it) }
+    }
 }

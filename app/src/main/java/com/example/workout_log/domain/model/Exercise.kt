@@ -3,6 +3,7 @@ package com.example.workout_log.domain.model
 import android.os.Parcelable
 import androidx.annotation.NonNull
 import androidx.room.*
+import androidx.room.ForeignKey.CASCADE
 
 @kotlinx.parcelize.Parcelize
 @Entity(
@@ -11,7 +12,9 @@ import androidx.room.*
         ForeignKey(
             entity = Workout::class,
             parentColumns = ["WorkoutID"],
-            childColumns = ["WorkoutID"]
+            childColumns = ["WorkoutID"],
+            onDelete = CASCADE,
+            onUpdate = CASCADE
         )
     ],
     indices = [Index("WorkoutID")]
@@ -32,10 +35,10 @@ data class Exercise(
     var exerciseId: Long = 0L
 
     companion object {
-        fun from(workout: Workout, exerciseNameList: List<ExerciseName>): List<Exercise> {
+        fun from(workoutId: Long, exerciseNameList: List<ExerciseName>): List<Exercise> {
             val list = mutableListOf<Exercise>()
             exerciseNameList.forEach { exerciseName ->
-                list.add(exerciseName.toExercise(workout))
+                list.add(exerciseName.toExercise(workoutId))
             }
             return list
         }

@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,13 +18,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.workout_log.domain.model.ExerciseName
 import com.example.workout_log.domain.model.ExerciseType
-import com.example.workout_log.domain.util.WorkoutAppLogger
 import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.ui.theme.Grey200
 import com.example.workout_log.ui.theme.White
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 @Composable
@@ -38,15 +35,15 @@ fun AddExerciseScreen(
     }
     Scaffold(
         topBar = {
-            AddExerciseTopBar(navController = navController, state = state, viewModel = viewModel)
+            AddExerciseTopBar(navController, state.exerciseNamesVisibility, state.selectedExercises, viewModel)
         }
     ) {
         if (state.exerciseNamesVisibility) {
-            ExerciseNames(state = state) { exerciseName ->
+            ExerciseNames(state.exerciseNames, state.selectedExercises) { exerciseName ->
                 viewModel.onEvent(AddExerciseEvent.ExerciseNameClicked(exerciseName))
             }
         } else {
-            ExerciseTypes(state = state) { exerciseType ->
+            ExerciseTypes(state.exerciseTypes) { exerciseType ->
                 viewModel.onEvent(AddExerciseEvent.ExerciseTypeClicked(exerciseType))
             }
         }
@@ -55,12 +52,15 @@ fun AddExerciseScreen(
 
 // TODO See what code can be shared between this and the one below
 @Composable
-fun ExerciseTypes(state: AddExerciseState, onExerciseTypeClicked: (exerciseType: ExerciseType) -> Unit) {
+fun ExerciseTypes(
+    exerciseTypes: List<ExerciseType>,
+    onExerciseTypeClicked: (exerciseType: ExerciseType) -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        items(state.exerciseTypes) { exerciseType ->
+        items(exerciseTypes) { exerciseType ->
             Box(modifier = Modifier
                 .fillMaxSize()
                 .clickable { onExerciseTypeClicked(exerciseType) }) {
@@ -86,13 +86,17 @@ fun ExerciseTypes(state: AddExerciseState, onExerciseTypeClicked: (exerciseType:
 }
 
 @Composable
-fun ExerciseNames(state: AddExerciseState, onExerciseNameClicked: (exerciseName: ExerciseName) -> Unit) {
+fun ExerciseNames(
+    exerciseNames: List<ExerciseName>,
+    selectedExercises: List<ExerciseName>,
+    onExerciseNameClicked: (exerciseName: ExerciseName) -> Unit
+) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(state.exerciseNames) { exerciseName ->
+        items(exerciseNames) { exerciseName ->
             Box(modifier = Modifier
                 .fillMaxSize()
                 .clickable { onExerciseNameClicked(exerciseName) }
-                .background(exerciseNameBackgroundColor(state, exerciseName))) {
+                .background(exerciseNameBackgroundColor(selectedExercises, exerciseName))) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -115,8 +119,11 @@ fun ExerciseNames(state: AddExerciseState, onExerciseNameClicked: (exerciseName:
 }
 
 @Composable
-private fun exerciseNameBackgroundColor(state: AddExerciseState, exerciseName: ExerciseName): Color {
-    return if (exerciseName in state.selectedExercises) {
+private fun exerciseNameBackgroundColor(
+    selectedExercises: List<ExerciseName>,
+    exerciseName: ExerciseName
+): Color {
+    return if (exerciseName in selectedExercises) {
         Grey200
     } else {
         MaterialTheme.colors.background
@@ -125,14 +132,18 @@ private fun exerciseNameBackgroundColor(state: AddExerciseState, exerciseName: E
 
 @ExperimentalCoroutinesApi
 @Composable
-fun AddExerciseTopBar(navController: NavController, state: AddExerciseState, viewModel: AddExerciseViewModel) {
-    val coroutineScope = rememberCoroutineScope()
+fun AddExerciseTopBar(
+    navController: NavController,
+    exerciseNamesVisibility: Boolean,
+    selectedExercises: List<ExerciseName>,
+    viewModel: AddExerciseViewModel
+) {
     TopAppBar(
         title = { Text("Add Exercise") },
         navigationIcon = {
             IconButton(
                 onClick = {
-                    if (!state.exerciseNamesVisibility) {
+                    if (!exerciseNamesVisibility) {
                         navController.navigateUp()
                     } else {
                         viewModel.onEvent(AddExerciseEvent.OnBackPressed)
@@ -143,21 +154,17 @@ fun AddExerciseTopBar(navController: NavController, state: AddExerciseState, vie
             }
         },
         actions = {
-            if (state.selectedExercises.isNotEmpty()) {
+            if (selectedExercises.isNotEmpty()) {
                 Box(
                     Modifier
                         .clickable {
                             // Use callbacks because this view needs the workout ID to pass to the home screen
                             viewModel.onEvent(AddExerciseEvent.OnSaveClicked {
-                                var workoutId: Long? = it
-                                if (workoutId == null) {
-                                    workoutId = -1L
-                                }
-                                navController.navigate(Screen.WorkoutLogScreen.route + "?newlyAddedWorkoutId=$workoutId")
+                                navController.navigate(Screen.WorkoutLogScreen.route)
                             })
                         }
                         .fillMaxHeight()) {
-                    val numberOfSelectedExercises = state.selectedExercises.size
+                    val numberOfSelectedExercises = selectedExercises.size
                     Text(
                         "Add ($numberOfSelectedExercises)",
                         modifier = Modifier

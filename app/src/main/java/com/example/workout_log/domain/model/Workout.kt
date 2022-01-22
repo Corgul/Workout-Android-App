@@ -23,4 +23,8 @@ data class Workout(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "WorkoutID")
     var workoutId: Long = 0
+
+    companion object {
+        const val invalidWorkoutId: Long = -1L
+    }
 }

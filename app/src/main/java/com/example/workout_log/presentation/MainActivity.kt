@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.util.WorkoutAppLogger
 import com.example.workout_log.presentation.add_exercise.AddExerciseScreen
 import com.example.workout_log.presentation.util.Screen
@@ -44,17 +45,11 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.WorkoutLogScreen.route + "?newlyAddedWorkoutId={newlyAddedWorkoutId}",
+                            startDestination = Screen.WorkoutLogScreen.route,
                             Modifier.padding(innerPadding)
                         ) {
                             composable(
-                                route = Screen.WorkoutLogScreen.route + "?newlyAddedWorkoutId={newlyAddedWorkoutId}",
-                                arguments = listOf(
-                                    navArgument("newlyAddedWorkoutId") {
-                                        type = NavType.LongType
-                                        defaultValue = -1
-                                    }
-                                )
+                                route = Screen.WorkoutLogScreen.route,
                             ) {
                                 WorkoutLogScreen(navController = navController)
                             }
@@ -66,7 +61,7 @@ class MainActivity : ComponentActivity() {
                                 arguments = listOf(
                                     navArgument("workoutId") {
                                         type = NavType.LongType
-                                        defaultValue = -1
+                                        defaultValue = Workout.invalidWorkoutId
                                     }
                                 )
                             ) {

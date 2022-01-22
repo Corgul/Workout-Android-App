@@ -15,7 +15,7 @@ class WorkoutRepositoryImpl @Inject constructor(
 
     override suspend fun getWorkoutForDate(date: LocalDate): Workout = workoutDao.getWorkoutForDate(date)
 
-    override suspend fun addWorkout(workout: Workout) = workoutDao.insertWorkout(workout)
+    override suspend fun addWorkout(workout: Workout): Long = workoutDao.insertWorkout(workout)
 
     override suspend fun getWorkoutForId(workoutId: Long) = workoutDao.getWorkoutForId(workoutId)
 }

@@ -33,6 +33,6 @@ data class ExerciseName(
     @NonNull
     var nameId: Long = 0
 
-    fun toExercise(workout: Workout): Exercise =
-        Exercise(workout.workoutId, this.exerciseTypeName, this.exerciseName)
+    fun toExercise(workoutId: Long): Exercise =
+        Exercise(workoutId, this.exerciseTypeName, this.exerciseName)
 }

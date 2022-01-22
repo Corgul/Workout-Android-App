@@ -1,8 +1,9 @@
 package com.example.workout_log.presentation.workoutlog
 
-import com.example.workout_log.domain.model.Exercise
+import com.example.workout_log.domain.model.ExerciseAndExerciseSets
+import com.example.workout_log.domain.model.Workout
 
 data class WorkoutLogState(
-    val exercises: List<Exercise> = emptyList(),
-    val workoutId: Long = -1L
+    val exercisesAndSets: List<ExerciseAndExerciseSets> = emptyList(),
+    val workoutId: Long = Workout.invalidWorkoutId
 )

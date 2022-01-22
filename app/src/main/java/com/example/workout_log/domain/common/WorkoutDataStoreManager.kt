@@ -3,6 +3,7 @@ package com.example.workout_log.domain.common
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
+import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.util.workoutDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.map
@@ -17,11 +18,11 @@ class WorkoutDataStore @Inject constructor(
 
     val preferencesFlow = dataStore.data
         .map { preferences ->
-            preferences[WORKOUT_ID] ?: -1L
+            preferences[WORKOUT_ID] ?: Workout.invalidWorkoutId
         }
 
     suspend fun storeWorkoutId(workoutId: Long?) {
-        if (workoutId == null || workoutId == -1L) {
+        if (workoutId == null || workoutId == Workout.invalidWorkoutId) {
             return
         }
 

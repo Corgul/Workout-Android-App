@@ -14,12 +14,12 @@ interface WorkoutDao {
     @Query("SELECT EXISTS(SELECT * FROM Workouts WHERE WorkoutID = :workoutId)")
     suspend fun doesWorkoutExist(workoutId: Long): Boolean
 
-    @Query("SELECT * FROM Workouts WHERE Date = :date LIMIT 1")
+    @Query("SELECT * FROM Workouts WHERE Date = :date")
     suspend fun getWorkoutForDate(date: LocalDate): Workout
 
     @Query("SELECT * FROM Workouts WHERE WorkoutID = :workoutId")
     suspend fun getWorkoutForId(workoutId: Long): Workout
 
     @Insert
-    suspend fun insertWorkout(workout: Workout)
+    suspend fun insertWorkout(workout: Workout): Long
 }

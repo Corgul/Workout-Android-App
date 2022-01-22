@@ -9,7 +9,6 @@ import javax.inject.Inject
 class CreateWorkout @Inject constructor(
     private val workoutRepository: WorkoutRepository
 ) {
-    suspend operator fun invoke(date: LocalDate) {
+    suspend operator fun invoke(date: LocalDate): Long =
         workoutRepository.addWorkout(Workout(date.formatDate(), date))
-    }
 }

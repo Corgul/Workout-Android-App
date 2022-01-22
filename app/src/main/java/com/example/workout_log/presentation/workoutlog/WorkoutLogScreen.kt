@@ -1,6 +1,5 @@
 package com.example.workout_log.presentation.workoutlog
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,10 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.workout_log.domain.util.WorkoutAppLogger
+import com.example.workout_log.domain.model.Exercise
+import com.example.workout_log.domain.model.ExerciseAndExerciseSets
+import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.presentation.util.Screen
+import com.example.workout_log.ui.theme.Shapes
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 
+@ExperimentalCoroutinesApi
 @Composable
 fun WorkoutLogScreen(
     navController: NavController,
@@ -36,34 +40,70 @@ fun WorkoutLogScreen(
             }
         }
     ) {
-        WorkoutLog(navController, viewModel, state)
+        WorkoutLog(state.exercisesAndSets) { exercise ->
+            viewModel.onAddSetButtonClicked(exercise)
+        }
     }
 }
 
 @Composable
-fun WorkoutLog(navController: NavController, viewModel: WorkoutLogViewModel, state: WorkoutLogState) {
+fun WorkoutLog(exercisesAndSets: List<ExerciseAndExerciseSets>, onAddSetButtonClicked: (exercise: Exercise) -> Unit) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(state.exercises) { exercise ->
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .clickable { }) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = exercise.exerciseName,
-                        style = MaterialTheme.typography.h5,
-                        modifier = Modifier.padding(all = 8.dp)
-                    )
-                    Divider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .width(1.dp)
-                    )
-                }
+        exercisesAndSets.forEach { exerciseAndSets ->
+            item {
+                ExerciseNameRow(exerciseAndSets)
             }
+            items(exerciseAndSets.sets) { set ->
+                ExerciseSetRow(set)
+            }
+            item {
+                AddSetButton(onAddSetButtonClicked)
+            }
+        }
+    }
+}
+
+@Composable
+fun ExerciseNameRow(exerciseAndSets: ExerciseAndExerciseSets) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(
+            text = exerciseAndSets.exercise.exerciseName,
+            style = MaterialTheme.typography.h6,
+            modifier = Modifier.padding(all = 8.dp)
+        )
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .width(1.dp)
+        )
+    }
+}
+
+@Composable
+fun ExerciseSetRow(exerciseSet: ExerciseSet) {
+    Row() {
+        Text(
+            text = exerciseSet.setNumber.toString(),
+            style = MaterialTheme.typography.body1,
+            modifier = Modifier.padding(all = 8.dp)
+        )
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .width(1.dp)
+        )
+    }
+}
+
+@Composable
+fun AddSetButton(onAddSetButtonClicked: (exercise: Exercise) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        Button(
+            onClick = { /*TODO*/ },
+            shape = Shapes.small,
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp)
+        ) {
+            Text("ADD SET")
         }
     }
 }

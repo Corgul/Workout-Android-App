@@ -7,5 +7,5 @@ import com.example.workout_log.domain.model.ExerciseSet
 @Dao
 interface ExerciseSetDao {
     @Insert
-    fun insertSet(exerciseSet: ExerciseSet)
+    suspend fun insertSets(sets: List<ExerciseSet>)
 }
