@@ -5,5 +5,6 @@ import javax.inject.Inject
 data class WorkoutLogUseCases @Inject constructor(
     val getWorkoutById: GetWorkoutById,
     val getExercisesAndSets: GetExercisesAndSets,
-    val getExerciseSets: GetExerciseSets
+    val updateSetWeight: UpdateSetWeight,
+    val updateSetReps: UpdateSetReps
 )

@@ -40,70 +40,135 @@ fun WorkoutLogScreen(
             }
         }
     ) {
-        WorkoutLog(state.exercisesAndSets) { exercise ->
-            viewModel.onAddSetButtonClicked(exercise)
-        }
+        WorkoutLog(
+            state.exercisesAndSets,
+            viewModel::onAddSetButtonClicked,
+            viewModel::onWeightChanged,
+            viewModel::onRepsChanged
+        )
     }
 }
 
 @Composable
-fun WorkoutLog(exercisesAndSets: List<ExerciseAndExerciseSets>, onAddSetButtonClicked: (exercise: Exercise) -> Unit) {
+fun WorkoutLog(
+    exercisesAndSets: List<ExerciseAndExerciseSets>,
+    onAddSetButtonClicked: (exercise: Exercise) -> Unit,
+    onWeightChanged: (exerciseSet: ExerciseSet, newWeight: Int) -> Unit,
+    onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int) -> Unit
+) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         exercisesAndSets.forEach { exerciseAndSets ->
             item {
-                ExerciseNameRow(exerciseAndSets)
+                ExerciseNameRow(exerciseAndSets.exercise)
+                ExerciseHeaderRow()
             }
             items(exerciseAndSets.sets) { set ->
-                ExerciseSetRow(set)
+                ExerciseSetRow(set, onWeightChanged, onRepsChanged)
             }
             item {
-                AddSetButton(onAddSetButtonClicked)
+                AddSetButton(exerciseAndSets.exercise, onAddSetButtonClicked)
             }
         }
     }
 }
 
 @Composable
-fun ExerciseNameRow(exerciseAndSets: ExerciseAndExerciseSets) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+fun ExerciseNameRow(exercise: Exercise) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(rowPadding())
+    ) {
         Text(
-            text = exerciseAndSets.exercise.exerciseName,
+            text = exercise.exerciseName,
             style = MaterialTheme.typography.h6,
-            modifier = Modifier.padding(all = 8.dp)
-        )
-        Divider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .width(1.dp)
         )
     }
 }
 
 @Composable
-fun ExerciseSetRow(exerciseSet: ExerciseSet) {
-    Row() {
+fun ExerciseHeaderRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(rowPadding())
+    ) {
+        Text(
+            text = "Set",
+            style = MaterialTheme.typography.h6,
+        )
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Text(
+                text = "lbs",
+                style = MaterialTheme.typography.h6,
+                modifier = Modifier.padding(end = 64.dp)
+            )
+
+            Text(
+                text = "Reps",
+                style = MaterialTheme.typography.h6,
+            )
+        }
+    }
+    Divider(
+        modifier = Modifier
+            .fillMaxWidth()
+            .width(1.dp)
+    )
+}
+
+@Composable
+fun ExerciseSetRow(
+    exerciseSet: ExerciseSet,
+    onWeightChanged: (exerciseSet: ExerciseSet, newWeight: Int) -> Unit,
+    onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int) -> Unit
+) {
+    Row(modifier = Modifier.padding(rowPadding())) {
         Text(
             text = exerciseSet.setNumber.toString(),
-            style = MaterialTheme.typography.body1,
-            modifier = Modifier.padding(all = 8.dp)
+            style = MaterialTheme.typography.h6,
         )
-        Divider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .width(1.dp)
-        )
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+//            TextField(
+//                value = exerciseSet.weight.toString(),
+//                modifier = Modifier.width(64.dp).padding(end = 64.dp),
+//                onValueChange = {
+//                    if (it.isNotEmpty()) {
+//                        onWeightChanged(exerciseSet, it.toInt())
+//                    }
+//                })
+
+            TextField(
+                value = exerciseSet.reps.toString(),
+                modifier = Modifier.width(64.dp).padding(end = 16.dp),
+                onValueChange = {
+                    if (it.isNotEmpty()) {
+                        onRepsChanged(exerciseSet, it.toInt())
+                    }
+                })
+        }
     }
 }
 
 @Composable
-fun AddSetButton(onAddSetButtonClicked: (exercise: Exercise) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+fun AddSetButton(exercise: Exercise, onAddSetButtonClicked: (exercise: Exercise) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(rowPadding()), horizontalArrangement = Arrangement.Center
+    ) {
         Button(
-            onClick = { /*TODO*/ },
+            onClick = { onAddSetButtonClicked(exercise) },
             shape = Shapes.small,
-            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 32.dp, end = 32.dp)
         ) {
             Text("ADD SET")
         }
     }
 }
+
+private fun rowPadding() = PaddingValues(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp)

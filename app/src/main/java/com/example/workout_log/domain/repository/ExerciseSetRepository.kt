@@ -4,4 +4,6 @@ import com.example.workout_log.domain.model.ExerciseSet
 
 interface ExerciseSetRepository {
     suspend fun insertSets(sets: List<ExerciseSet>)
+
+    suspend fun updateExerciseSet(exerciseSet: ExerciseSet)
 }

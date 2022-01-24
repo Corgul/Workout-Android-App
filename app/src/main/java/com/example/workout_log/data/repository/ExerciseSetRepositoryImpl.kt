@@ -9,4 +9,7 @@ class ExerciseSetRepositoryImpl @Inject constructor(
     private val exerciseSetDao: ExerciseSetDao
 ) : ExerciseSetRepository {
     override suspend fun insertSets(sets: List<ExerciseSet>) = exerciseSetDao.insertSets(sets)
+
+    override suspend fun updateExerciseSet(exerciseSet: ExerciseSet) =
+        exerciseSetDao.updateExerciseSet(exerciseSet)
 }

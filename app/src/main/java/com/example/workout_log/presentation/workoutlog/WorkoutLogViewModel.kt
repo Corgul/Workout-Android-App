@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.workout_log.domain.common.WorkoutDataStore
 import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
+import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutLogUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class WorkoutLogViewModel @Inject constructor(
     private val useCases: WorkoutLogUseCases,
-    private val workoutDataStore: WorkoutDataStore
+    workoutDataStore: WorkoutDataStore
 ) : ViewModel() {
     private val _state = mutableStateOf(WorkoutLogState())
     val state: State<WorkoutLogState> = _state
@@ -56,5 +57,17 @@ class WorkoutLogViewModel @Inject constructor(
 
     fun onAddSetButtonClicked(exercise: Exercise) {
 
+    }
+
+    fun onWeightChanged(exerciseSet: ExerciseSet, newWeight: Int) {
+        viewModelScope.launch {
+            useCases.updateSetWeight(exerciseSet, newWeight)
+        }
+    }
+
+    fun onRepsChanged(exerciseSet: ExerciseSet, newReps: Int) {
+        viewModelScope.launch {
+            useCases.updateSetWeight(exerciseSet, newReps)
+        }
     }
 }

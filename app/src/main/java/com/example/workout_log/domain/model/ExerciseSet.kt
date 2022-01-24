@@ -25,10 +25,10 @@ data class ExerciseSet(
     val setNumber: Int = 1,
 
     @ColumnInfo(name = "Reps")
-    val reps: Int = 0,
+    var reps: Int = 0,
 
     @ColumnInfo(name = "Weight")
-    val weight: Int = 0
+    var weight: Int = 0
 ) {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "ExerciseSetID")
