@@ -10,6 +10,9 @@ interface ExerciseSetDao {
     @Insert
     suspend fun insertSets(sets: List<ExerciseSet>)
 
+    @Insert
+    suspend fun insertSet(set: ExerciseSet)
+
     @Update
     suspend fun updateExerciseSet(exerciseSet: ExerciseSet)
 }

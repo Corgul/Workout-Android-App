@@ -10,6 +10,7 @@ import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutLogUseCases
+import com.example.workout_log.domain.util.WorkoutAppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -49,25 +50,36 @@ class WorkoutLogViewModel @Inject constructor(
 
     private fun getExercisesAndSets() {
         exercisesAndSets.onEach { exercisesAndSets ->
+            WorkoutAppLogger.d("Got new exercises and sets")
             _state.value = state.value.copy(
                 exercisesAndSets = exercisesAndSets
             )
         }.launchIn(viewModelScope)
     }
 
-    fun onAddSetButtonClicked(exercise: Exercise) {
-
+    fun onAddSetButtonClicked(exerciseAndExerciseSets: ExerciseAndExerciseSets) {
+        viewModelScope.launch {
+            // In case the set list is out of order, get the max set number
+            val setNumber = exerciseAndExerciseSets.sets.map { it.setNumber }.maxOf { it } + 1
+            useCases.addSet(exerciseAndExerciseSets.exercise, setNumber)
+        }
     }
 
-    fun onWeightChanged(exerciseSet: ExerciseSet, newWeight: Int) {
+    fun onWeightChanged(exerciseSet: ExerciseSet, newWeight: Int?) {
+        if (newWeight == null) {
+            return
+        }
         viewModelScope.launch {
             useCases.updateSetWeight(exerciseSet, newWeight)
         }
     }
 
-    fun onRepsChanged(exerciseSet: ExerciseSet, newReps: Int) {
+    fun onRepsChanged(exerciseSet: ExerciseSet, newReps: Int?) {
+        if (newReps == null) {
+            return
+        }
         viewModelScope.launch {
-            useCases.updateSetWeight(exerciseSet, newReps)
+            useCases.updateSetReps(exerciseSet, newReps)
         }
     }
 }
