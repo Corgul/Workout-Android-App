@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.annotation.NonNull
 import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
+import java.time.LocalDate
 
 @kotlinx.parcelize.Parcelize
 @Entity(

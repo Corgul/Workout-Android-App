@@ -91,6 +91,9 @@ dependencies {
     // Gson
     implementation "com.google.code.gson:gson:2.8.9"
 
+    // Third party calendar since Compose doesn't have one yet
+    implementation "io.github.boguszpawlowski.composecalendar:composecalendar:0.3.0"
+
     // Testing
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

@@ -159,8 +159,8 @@ fun AddExerciseTopBar(
                     Modifier
                         .clickable {
                             // Use callbacks because this view needs the workout ID to pass to the home screen
-                            viewModel.onEvent(AddExerciseEvent.OnSaveClicked {
-                                navController.navigate(Screen.WorkoutLogScreen.route)
+                            viewModel.onEvent(AddExerciseEvent.OnSaveClicked { workoutDateLong ->
+                                navController.navigate(Screen.WorkoutLogScreen.route + "?workoutDate=$workoutDateLong")
                             })
                         }
                         .fillMaxHeight()) {

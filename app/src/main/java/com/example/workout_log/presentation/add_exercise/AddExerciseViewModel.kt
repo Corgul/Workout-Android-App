@@ -22,28 +22,33 @@ import javax.inject.Inject
 @HiltViewModel
 class AddExerciseViewModel @Inject constructor(
     private val useCases: AddExerciseUseCases,
-    private val workoutDataStore: WorkoutDataStore,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = mutableStateOf(AddExerciseState())
     val state: State<AddExerciseState> = _state
 
-    private var workoutIdArg = savedStateHandle.get<Long>("workoutId") ?: Workout.invalidWorkoutId
+    private val workoutDate: LocalDate
     private val selectedExerciseNames = linkedSetOf<ExerciseName>()
 
     private lateinit var exerciseTypesWithExerciseNames: List<ExerciseTypeWithNames>
 
     init {
+        val workoutDateLong = savedStateHandle.get<Long>("workoutDate") ?: LocalDate.now().toEpochDay()
+        workoutDate = LocalDate.ofEpochDay(workoutDateLong)
         viewModelScope.launch {
-            WorkoutAppLogger.d("Workout id nav arg is: $workoutIdArg")
-            useCases.getExerciseTypesWithExerciseNames().collect { exerciseTypesWithExerciseNamesList ->
-                WorkoutAppLogger.d("Exercise list : ${exerciseTypesWithExerciseNamesList.size}")
-                exerciseTypesWithExerciseNames = exerciseTypesWithExerciseNamesList
-                val exerciseTypes = exerciseTypesWithExerciseNames.map { it.exerciseType }
-                _state.value = state.value.copy(
-                    exerciseTypes = exerciseTypes
-                )
-            }
+            WorkoutAppLogger.d("Workout date nav arg is: $workoutDate")
+            getExerciseTypesWithExerciseNames()
+        }
+    }
+
+    private suspend fun getExerciseTypesWithExerciseNames() {
+        useCases.getExerciseTypesWithExerciseNames().collect { exerciseTypesWithExerciseNamesList ->
+            WorkoutAppLogger.d("Exercise list : ${exerciseTypesWithExerciseNamesList.size}")
+            exerciseTypesWithExerciseNames = exerciseTypesWithExerciseNamesList
+            val exerciseTypes = exerciseTypesWithExerciseNames.map { it.exerciseType }
+            _state.value = state.value.copy(
+                exerciseTypes = exerciseTypes
+            )
         }
     }
 
@@ -101,18 +106,12 @@ class AddExerciseViewModel @Inject constructor(
         }
     }
 
-    private suspend fun saveExercises(onExercisesSaved: () -> Unit) {
-        var workoutId = workoutIdArg
-
-        if (workoutIdArg == Workout.invalidWorkoutId) {
-            val date = LocalDate.now()
-            // TODO - Pass in date instead of passing in LocalDate.now()
-            workoutId = useCases.createWorkout(date)
-            workoutDataStore.storeWorkoutId(workoutId)
-        }
+    private suspend fun saveExercises(onExercisesSaved: (workoutDateLong: Long) -> Unit) {
+        val workout = useCases.getWorkoutByDate(workoutDate)
+        val workoutId = workout?.workoutId ?: useCases.createWorkout(workoutDate)
 
         useCases.saveExercises(workoutId, selectedExerciseNames.toList())
 
-        onExercisesSaved()
+        onExercisesSaved(workoutDate.toEpochDay())
     }
 }

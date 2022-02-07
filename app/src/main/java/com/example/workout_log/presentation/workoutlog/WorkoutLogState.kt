@@ -5,5 +5,5 @@ import com.example.workout_log.domain.model.Workout
 
 data class WorkoutLogState(
     val exercisesAndSets: List<ExerciseAndExerciseSets> = emptyList(),
-    val workoutId: Long = Workout.invalidWorkoutId
+    val workout: Workout? = null
 )

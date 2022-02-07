@@ -2,57 +2,54 @@ package com.example.workout_log.presentation.workoutlog
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.workout_log.domain.common.WorkoutDataStore
-import com.example.workout_log.domain.model.Exercise
-import com.example.workout_log.domain.model.ExerciseAndExerciseSets
-import com.example.workout_log.domain.model.ExerciseSet
-import com.example.workout_log.domain.model.Workout
+import com.example.workout_log.domain.model.*
+import com.example.workout_log.domain.use_cases.workout_log.ExerciseBottomSheetUseCases
+import com.example.workout_log.domain.use_cases.workout_log.WorkoutBottomSheetUseCases
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutLogUseCases
 import com.example.workout_log.domain.util.WorkoutAppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 @HiltViewModel
 class WorkoutLogViewModel @Inject constructor(
-    private val useCases: WorkoutLogUseCases,
-    workoutDataStore: WorkoutDataStore
+    private val logUseCases: WorkoutLogUseCases,
+    private val exerciseBottomSheetUseCases: ExerciseBottomSheetUseCases,
+    private val workoutBottomSheetUseCases: WorkoutBottomSheetUseCases,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = mutableStateOf(WorkoutLogState())
     val state: State<WorkoutLogState> = _state
-
-    private val workoutId: Flow<Long> = workoutDataStore.preferencesFlow
+    private val workoutDate: LocalDate
     // Update the exercises and sets based on the currently selected workout
-    private val exercisesAndSets: Flow<List<ExerciseAndExerciseSets>> = workoutDataStore.preferencesFlow
-        .flatMapLatest { useCases.getExercisesAndSets(it) }
+    private val workoutWithExercisesAndSets: Flow<WorkoutWithExercisesAndSets?>
 
     init {
+        val workoutDateLong = savedStateHandle.get<Long>("workoutDate") ?: LocalDate.now().toEpochDay()
+        workoutDate = LocalDate.ofEpochDay(workoutDateLong)
+        workoutWithExercisesAndSets = logUseCases.getWorkoutWithExercisesAndSets(workoutDate)
         viewModelScope.launch {
-            getWorkoutId()
-            getExercisesAndSets()
+            getWorkoutWithExercisesAndSets()
         }
     }
 
-    private fun getWorkoutId() {
-        workoutId.onEach { workoutId: Long ->
-            if (workoutId != Workout.invalidWorkoutId) {
-                _state.value = state.value.copy(
-                    workoutId = workoutId
-                )
+    private fun getWorkoutWithExercisesAndSets() {
+        workoutWithExercisesAndSets.onEach { workoutWithExercisesAndSets ->
+            if (workoutWithExercisesAndSets == null) {
+                _state.value = WorkoutLogState()
+                return@onEach
             }
-        }.launchIn(viewModelScope)
-    }
-
-    private fun getExercisesAndSets() {
-        exercisesAndSets.onEach { exercisesAndSets ->
             WorkoutAppLogger.d("Got new exercises and sets")
             _state.value = state.value.copy(
-                exercisesAndSets = exercisesAndSets
+                exercisesAndSets = workoutWithExercisesAndSets.exercisesAndSets,
+                workout = workoutWithExercisesAndSets.workout
             )
         }.launchIn(viewModelScope)
     }
@@ -61,7 +58,7 @@ class WorkoutLogViewModel @Inject constructor(
         viewModelScope.launch {
             // In case the set list is out of order, get the max set number
             val setNumber = exerciseAndExerciseSets.sets.map { it.setNumber }.maxOf { it } + 1
-            useCases.addSet(exerciseAndExerciseSets.exercise, setNumber)
+            logUseCases.addSet(exerciseAndExerciseSets.exercise, setNumber)
         }
     }
 
@@ -70,7 +67,7 @@ class WorkoutLogViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            useCases.updateSetWeight(exerciseSet, newWeight)
+            logUseCases.updateSetWeight(exerciseSet, newWeight)
         }
     }
 
@@ -79,7 +76,23 @@ class WorkoutLogViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            useCases.updateSetReps(exerciseSet, newReps)
+            logUseCases.updateSetReps(exerciseSet, newReps)
+        }
+    }
+
+    fun deleteExercise(exercise: Exercise) {
+        viewModelScope.launch {
+            exerciseBottomSheetUseCases.deleteExercise(exercise)
+        }
+    }
+
+    fun deleteWorkout(workout: Workout?) {
+        if (workout == null) {
+            return
+        }
+
+        viewModelScope.launch {
+            workoutBottomSheetUseCases.deleteWorkout(workout)
         }
     }
 }

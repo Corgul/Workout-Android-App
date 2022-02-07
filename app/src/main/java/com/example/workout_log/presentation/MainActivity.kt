@@ -26,8 +26,10 @@ import com.example.workout_log.presentation.calendar.CalendarScreen
 import com.example.workout_log.presentation.workoutlog.WorkoutLogScreen
 import com.example.workout_log.ui.theme.WorkoutlogTheme
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.LocalDate
 
 @AndroidEntryPoint
+@ExperimentalMaterialApi
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,23 +47,29 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.WorkoutLogScreen.route,
+                            startDestination = Screen.WorkoutLogScreen.route + "?workoutDate={workoutDate}",
                             Modifier.padding(innerPadding)
                         ) {
                             composable(
-                                route = Screen.WorkoutLogScreen.route,
+                                route = Screen.WorkoutLogScreen.route + "?workoutDate={workoutDate}",
+                                arguments = listOf(
+                                    navArgument("workoutDate") {
+                                        type = NavType.LongType
+                                        defaultValue = LocalDate.now().toEpochDay()
+                                    }
+                                )
                             ) {
-                                WorkoutLogScreen(navController = navController)
+                                val workoutDate = it.arguments?.getLong("workoutDate") ?: LocalDate.now().toEpochDay()
+                                WorkoutLogScreen(navController = navController, workoutDate = workoutDate)
                             }
                             composable(route = Screen.CalendarScreen.route) {
                                 CalendarScreen(navController = navController)
                             }
                             composable(
-                                route = Screen.AddExerciseScreen.route + "?workoutId={workoutId}",
+                                route = Screen.AddExerciseScreen.route + "/{workoutDate}",
                                 arguments = listOf(
-                                    navArgument("workoutId") {
+                                    navArgument("workoutDate") {
                                         type = NavType.LongType
-                                        defaultValue = Workout.invalidWorkoutId
                                     }
                                 )
                             ) {

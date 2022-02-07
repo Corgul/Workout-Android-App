@@ -7,11 +7,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -22,25 +20,95 @@ import androidx.navigation.NavController
 import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
+import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.presentation.util.Screen
+import com.example.workout_log.presentation.workoutlog.components.ExerciseBottomSheet
+import com.example.workout_log.presentation.workoutlog.components.WorkoutBottomSheet
 import com.example.workout_log.ui.theme.Shapes
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 
+// TODO
+//Things to add for exercise operations
+//Delete set
+//Replace Exercise
+//Move position
+//
+//Show snackbar when deleting items
 
+@ExperimentalMaterialApi
 @ExperimentalCoroutinesApi
 @Composable
 fun WorkoutLogScreen(
     navController: NavController,
+    workoutDate: Long,
     viewModel: WorkoutLogViewModel = hiltViewModel()
+) {
+    ModalBottomSheet(navController, workoutDate, viewModel)
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel: WorkoutLogViewModel) {
+    val modalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val coroutineScope = rememberCoroutineScope()
+    var currentBottomSheet by remember { mutableStateOf<WorkoutLogBottomSheet>(WorkoutLogBottomSheet.WorkoutBottomSheet) }
+
+    val openBottomSheet: (bottomSheet: WorkoutLogBottomSheet) -> Unit = {
+        currentBottomSheet = it
+        coroutineScope.launch { modalBottomSheetState.show() }
+    }
+
+    ModalBottomSheetLayout(
+        sheetState = modalBottomSheetState,
+        sheetContent = {
+            if (currentBottomSheet is WorkoutLogBottomSheet.ExerciseBottomSheet) {
+                ExerciseBottomSheet(
+                    viewModel = viewModel,
+                    exercise = (currentBottomSheet as WorkoutLogBottomSheet.ExerciseBottomSheet).exercise,
+                    coroutineScope = coroutineScope,
+                    bottomSheetState = modalBottomSheetState
+                )
+            } else {
+                WorkoutBottomSheet(
+                    viewModel = viewModel,
+                    workout = viewModel.state.value.workout,
+                    coroutineScope = coroutineScope,
+                    bottomSheetState = modalBottomSheetState
+                )
+            }
+        }
+    ) {
+        WorkoutLogScaffold(
+            navController = navController,
+            viewModel = viewModel,
+            workoutDate = workoutDate,
+            openBottomSheet = openBottomSheet
+        )
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun WorkoutLogScaffold(
+    navController: NavController,
+    viewModel: WorkoutLogViewModel,
+    workoutDate: Long,
+    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
     val state = viewModel.state.value
+
     Scaffold(
         scaffoldState = scaffoldState,
+        topBar = {
+            WorkoutLogTopBar(state.workout, openBottomSheet)
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate(Screen.AddExerciseScreen.route + "?workoutId=${state.workoutId}")
+                    navController.navigate(Screen.AddExerciseScreen.route + "/${workoutDate}")
                 },
                 modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
             ) {
@@ -52,22 +120,39 @@ fun WorkoutLogScreen(
             state.exercisesAndSets,
             viewModel::onAddSetButtonClicked,
             viewModel::onWeightChanged,
-            viewModel::onRepsChanged
+            viewModel::onRepsChanged,
+            openBottomSheet
         )
     }
 }
 
 @Composable
+fun WorkoutLogTopBar(workout: Workout?, openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit) {
+    TopAppBar(
+        title = { Text(text = workout?.workoutName ?: "New Workout") },
+        actions = {
+            if (workout != null) {
+                IconButton(onClick = { openBottomSheet(WorkoutLogBottomSheet.WorkoutBottomSheet) }) {
+                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Workout Menu")
+                }
+            }
+        }
+    )
+}
+
+@ExperimentalMaterialApi
+@Composable
 fun WorkoutLog(
     exercisesAndSets: List<ExerciseAndExerciseSets>,
     onAddSetButtonClicked: (exerciseAndSets: ExerciseAndExerciseSets) -> Unit,
     onWeightChanged: (exerciseSet: ExerciseSet, newWeight: Int?) -> Unit,
-    onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int?) -> Unit
+    onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int?) -> Unit,
+    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         exercisesAndSets.forEach { exerciseAndSets ->
             item {
-                ExerciseNameRow(exerciseAndSets.exercise)
+                ExerciseNameRow(exerciseAndSets.exercise, openBottomSheet)
                 ExerciseHeaderRow()
             }
             items(exerciseAndSets.sets) { set ->
@@ -80,17 +165,28 @@ fun WorkoutLog(
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
-fun ExerciseNameRow(exercise: Exercise) {
+fun ExerciseNameRow(
+    exercise: Exercise,
+    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(rowPadding())
+            .padding(rowPadding()),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = exercise.exerciseName,
             style = MaterialTheme.typography.h6,
         )
+        IconButton(onClick = {
+            openBottomSheet(WorkoutLogBottomSheet.ExerciseBottomSheet(exercise))
+        }) {
+            Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Exercise Menu")
+        }
     }
 }
 
