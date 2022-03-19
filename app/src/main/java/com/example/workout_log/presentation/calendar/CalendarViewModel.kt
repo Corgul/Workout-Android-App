@@ -1,6 +1,7 @@
 package com.example.workout_log.presentation.calendar
 
 import androidx.lifecycle.ViewModel
+import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.model.WorkoutWithExercisesAndSets
 import com.example.workout_log.domain.use_cases.calendar.CalendarUseCases
 import com.example.workout_log.domain.util.WorkoutAppLogger

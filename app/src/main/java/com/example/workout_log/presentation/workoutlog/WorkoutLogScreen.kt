@@ -236,8 +236,10 @@ fun ExerciseSetRow(
         )
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            var setWeight by rememberSaveable { mutableStateOf(exerciseSet.weight.toString()) }
-            var setReps by rememberSaveable { mutableStateOf(exerciseSet.reps.toString()) }
+            // Use the exercise ID as a key to avoid a bug where
+            // deleting an exercise will show an incorrect value for the next exercise's set reps/weight
+            var setWeight by rememberSaveable(exerciseSet.exerciseId) { mutableStateOf(exerciseSet.weight.toString()) }
+            var setReps by rememberSaveable(exerciseSet.exerciseId) { mutableStateOf(exerciseSet.reps.toString()) }
             val maxWeightCharacters = 3
             val maxRepCharacters = 2
 

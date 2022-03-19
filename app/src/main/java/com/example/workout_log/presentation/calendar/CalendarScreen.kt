@@ -3,18 +3,16 @@ package com.example.workout_log.presentation.calendar
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.util.formatDate
+import com.example.workout_log.presentation.calendar.components.BottomSheet
 import com.example.workout_log.presentation.calendar.components.DayContent
-import com.example.workout_log.presentation.calendar.components.WorkoutPreview
 import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.ui.theme.Shapes
 import io.github.boguszpawlowski.composecalendar.SelectableCalendar
@@ -22,6 +20,7 @@ import io.github.boguszpawlowski.composecalendar.rememberSelectableCalendarState
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
+@ExperimentalMaterialApi
 @Composable
 fun CalendarScreen(
     navController: NavController,
@@ -30,22 +29,28 @@ fun CalendarScreen(
     val calendarState = rememberSelectableCalendarState(onSelectionChanged = viewModel::onDateSelected)
     val workoutDays by viewModel.workoutDaysFlow.collectAsState(initial = emptyList())
     val workoutWithExercisesAndSets by viewModel.workoutDetailFlow.collectAsState(initial = null)
-    val scaffoldState = rememberScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+    )
+    val isBottomSheetVisible = workoutWithExercisesAndSets != null
 
-    Scaffold(scaffoldState = scaffoldState) {
+    BottomSheet(
+        workoutWithExercisesAndSets,
+        scaffoldState,
+        isBottomSheetVisible,
+        onGoToWorkoutClicked = { onGoToWorkoutClicked(navController, workoutWithExercisesAndSets?.workout) }) {
         Column() {
             SelectableCalendar(calendarState = calendarState, dayContent = { DayContent(state = it, workoutDays = workoutDays) })
-            if (workoutWithExercisesAndSets == null) {
+            if (!isBottomSheetVisible) {
                 AddNewWorkoutButton(navController = navController, scaffoldState, calendarState.selectionState.selection.firstOrNull())
-            } else {
-                WorkoutPreview(navController = navController, workoutWithExercisesAndSets = workoutWithExercisesAndSets!!)
             }
         }
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
-fun AddNewWorkoutButton(navController: NavController, scaffoldState: ScaffoldState, selectedDate: LocalDate?) {
+fun AddNewWorkoutButton(navController: NavController, scaffoldState: BottomSheetScaffoldState, selectedDate: LocalDate?) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     Button(
@@ -58,10 +63,17 @@ fun AddNewWorkoutButton(navController: NavController, scaffoldState: ScaffoldSta
             }
         },
         shape = Shapes.small,
+        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary),
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 32.dp, end = 32.dp, top = 32.dp)
     ) {
         Text("Add Exercise for Date")
+    }
+}
+
+private fun onGoToWorkoutClicked(navController: NavController, workout: Workout?) {
+    workout?.let {
+        navController.navigate(Screen.WorkoutLogScreen.route + "?workoutDate=${it.date.toEpochDay()}")
     }
 }

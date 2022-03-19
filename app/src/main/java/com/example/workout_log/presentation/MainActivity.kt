@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.WorkoutLogScreen.route + "?workoutDate={workoutDate}",
+                            startDestination = Screen.CalendarScreen.route,
                             Modifier.padding(innerPadding)
                         ) {
                             composable(
@@ -89,8 +89,8 @@ fun BottomNav(navController: NavController) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
         val items = listOf(
-            Screen.WorkoutLogScreen,
-            Screen.CalendarScreen
+            Screen.CalendarScreen,
+            Screen.WorkoutLogScreen
         )
         items.forEach { screen ->
             BottomNavigationItem(
