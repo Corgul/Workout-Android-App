@@ -23,6 +23,8 @@ val Indigo700 = Color(0xFF303F9F)
 
 val White = Color(0xFFffffff)
 val Green = Color(0xFF07750C)
+val Green200 = Color(0xFFa5d6a7)
+val Green300 = Color(0xFF81c784)
 
 val Purple200 = Color(0xFFBB86FC)
 val Purple500 = Color(0xFF6200EE)

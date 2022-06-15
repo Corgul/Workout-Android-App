@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.model.WorkoutWithExercisesAndSets
+import com.example.workout_log.domain.util.WorkoutAppLogger
 import com.example.workout_log.presentation.util.extensions.collapsedVisibilityFraction
 import com.example.workout_log.presentation.util.extensions.expandedVisibilityFraction
 import com.example.workout_log.ui.theme.Grey100
@@ -152,7 +153,7 @@ fun BottomSheetExpanded(
 }
 
 @Composable
-fun ColumnScope.BottomSheetExpandedContent(
+fun BottomSheetExpandedContent(
     workoutWithExercisesAndSets: WorkoutWithExercisesAndSets?,
     collapsedVisibilityFraction: Float,
     onGoToWorkoutClicked: () -> Unit
@@ -163,9 +164,7 @@ fun ColumnScope.BottomSheetExpandedContent(
 
     WorkoutHeader(workoutWithExercisesAndSets.workout, collapsedVisibilityFraction)
 
-    ExerciseCards(workoutWithExercisesAndSets.exercisesAndSets)
-
-    GoToWorkoutButton(onGoToWorkoutClicked, modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp))
+    ExerciseCards(workoutWithExercisesAndSets.exercisesAndSets, onGoToWorkoutClicked = onGoToWorkoutClicked)
 }
 
 @Composable
@@ -180,10 +179,16 @@ fun WorkoutHeader(workout: Workout, collapsedVisibilityFraction: Float) {
 }
 
 @Composable
-fun ExerciseCards(exercisesAndSets: List<ExerciseAndExerciseSets>) {
-    LazyColumn(modifier = Modifier.padding(horizontal = 4.dp)) {
+fun ExerciseCards(exercisesAndSets: List<ExerciseAndExerciseSets>, onGoToWorkoutClicked: () -> Unit) {
+    LazyColumn(modifier = Modifier.padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         items(exercisesAndSets) { exerciseAndSets ->
             ExerciseCard(exerciseAndSets = exerciseAndSets)
+        }
+        item {
+            GoToWorkoutButton(
+                onGoToWorkoutClicked, modifier = Modifier
+                    .padding(top = 16.dp)
+            )
         }
     }
 }

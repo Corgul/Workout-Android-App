@@ -1,8 +1,12 @@
 package com.example.workout_log.presentation.workoutlog
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -12,7 +16,14 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.debugInspectorInfo
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,10 +32,13 @@ import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
+import com.example.workout_log.domain.util.WorkoutAppLogger
 import com.example.workout_log.presentation.util.Screen
+import com.example.workout_log.presentation.util.WorkoutNameHelper
+import com.example.workout_log.presentation.util.extensions.onFocusSelectAll
 import com.example.workout_log.presentation.workoutlog.components.ExerciseBottomSheet
 import com.example.workout_log.presentation.workoutlog.components.WorkoutBottomSheet
-import com.example.workout_log.ui.theme.Shapes
+import com.example.workout_log.ui.theme.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -89,6 +103,7 @@ fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel:
     }
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @ExperimentalMaterialApi
 @Composable
 fun WorkoutLogScaffold(
@@ -103,7 +118,7 @@ fun WorkoutLogScaffold(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            WorkoutLogTopBar(state.workout, openBottomSheet)
+            WorkoutLogTopBar(state.workout, openBottomSheet, workoutDate)
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -127,9 +142,9 @@ fun WorkoutLogScaffold(
 }
 
 @Composable
-fun WorkoutLogTopBar(workout: Workout?, openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit) {
+fun WorkoutLogTopBar(workout: Workout?, openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit, workoutDate: Long) {
     TopAppBar(
-        title = { Text(text = workout?.workoutName ?: "New Workout") },
+        title = { Text(text = WorkoutNameHelper.getWorkoutName(workout?.workoutName, workoutDate)) },
         actions = {
             if (workout != null) {
                 IconButton(onClick = { openBottomSheet(WorkoutLogBottomSheet.WorkoutBottomSheet) }) {
@@ -149,17 +164,41 @@ fun WorkoutLog(
     onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int?) -> Unit,
     openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
 ) {
+    WorkoutLogCards(exercisesAndSets, onAddSetButtonClicked, onWeightChanged, onRepsChanged, openBottomSheet)
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun WorkoutLogCards(
+    exercisesAndSets: List<ExerciseAndExerciseSets>,
+    onAddSetButtonClicked: (exerciseAndSets: ExerciseAndExerciseSets) -> Unit,
+    onWeightChanged: (exerciseSet: ExerciseSet, newWeight: Int?) -> Unit,
+    onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int?) -> Unit,
+    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
+) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        exercisesAndSets.forEach { exerciseAndSets ->
-            item {
-                ExerciseNameRow(exerciseAndSets.exercise, openBottomSheet)
-                ExerciseHeaderRow()
-            }
-            items(exerciseAndSets.sets) { set ->
-                ExerciseSetRow(set, onWeightChanged, onRepsChanged)
-            }
-            item {
-                AddSetButton(exerciseAndSets, onAddSetButtonClicked)
+        items(exercisesAndSets) { exerciseAndSets ->
+            var expanded by remember { mutableStateOf(true) }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp), shape = RoundedCornerShape(12.dp),
+                elevation = 6.dp
+            ) {
+                Column(Modifier.clickable { expanded = !expanded }) {
+                    ExerciseNameRow(exerciseAndSets.exercise, openBottomSheet)
+                    AnimatedVisibility(visible = expanded) {
+                        Column {
+                            ExerciseHeaderRow()
+
+                            exerciseAndSets.sets.forEach {
+                                ExerciseSetRow(it, onWeightChanged, onRepsChanged)
+                            }
+
+                            AddSetButton(exerciseAndSets, onAddSetButtonClicked)
+                        }
+                    }
+                }
             }
         }
     }
@@ -199,22 +238,20 @@ fun ExerciseHeaderRow() {
     ) {
         Text(
             text = "Set",
-            style = MaterialTheme.typography.h6,
+            style = MaterialTheme.typography.subtitle1,
         )
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Text(
-                text = "lbs",
-                style = MaterialTheme.typography.h6,
-                modifier = Modifier.padding(end = 88.dp)
-            )
+        Spacer(modifier = Modifier.weight(1f))
 
-            Text(
-                text = "Reps",
-                style = MaterialTheme.typography.h6,
-                modifier = Modifier.padding(end = 16.dp)
-            )
-        }
+        Text(
+            text = "lbs",
+            modifier = Modifier.padding(end = 116.dp)
+        )
+
+        Text(
+            text = "Reps",
+            modifier = Modifier.padding(end = 24.dp)
+        )
     }
     Divider(
         modifier = Modifier
@@ -230,50 +267,57 @@ fun ExerciseSetRow(
     onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int?) -> Unit
 ) {
     Row(modifier = Modifier.padding(rowPadding()), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = exerciseSet.setNumber.toString(),
-            style = MaterialTheme.typography.h6,
-        )
+        Text(text = exerciseSet.setNumber.toString())
+        
+        Spacer(modifier = Modifier.weight(1f))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            // Use the exercise ID as a key to avoid a bug where
-            // deleting an exercise will show an incorrect value for the next exercise's set reps/weight
-            var setWeight by rememberSaveable(exerciseSet.exerciseId) { mutableStateOf(exerciseSet.weight.toString()) }
-            var setReps by rememberSaveable(exerciseSet.exerciseId) { mutableStateOf(exerciseSet.reps.toString()) }
-            val maxWeightCharacters = 3
-            val maxRepCharacters = 2
+        val setWeightTextValue = remember { mutableStateOf(TextFieldValue(exerciseSet.weight.toString())) }
+        val setRepsTextValue = remember { mutableStateOf(TextFieldValue(exerciseSet.reps.toString())) }
+        val maxWeightCharacters = 3
+        val maxRepCharacters = 2
 
-            TextField(
-                value = setWeight,
-                modifier = Modifier
-                    .width(116.dp)
-                    .padding(end = 48.dp),
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                onValueChange = {
-                    if (it.length > maxWeightCharacters) {
-                        return@TextField
-                    }
-                    setWeight = it
-                    val setWeightNum = setWeight.toIntOrNull()
-                    onWeightChanged(exerciseSet, setWeightNum)
-                })
+        WorkoutLogNumberTextField(
+            textFieldValue = setWeightTextValue,
+            Modifier
+                .padding(end = 56.dp)
+                .width(80.dp)
+        ) {
+            if (it.text.length > maxWeightCharacters) {
+                return@WorkoutLogNumberTextField
+            }
+            setWeightTextValue.value = it
+            onWeightChanged(exerciseSet, it.text.toIntOrNull())
+        }
 
-            TextField(
-                value = setReps,
-                modifier = Modifier.width(64.dp),
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                onValueChange = {
-                    if (it.length > maxRepCharacters) {
-                        return@TextField
-                    }
-                    setReps = it
-                    val setRepsNum = setReps.toIntOrNull()
-                    onRepsChanged(exerciseSet, setRepsNum)
-                })
+        WorkoutLogNumberTextField(textFieldValue = setRepsTextValue, Modifier.width(64.dp)) {
+            if (it.text.length > maxRepCharacters) {
+                return@WorkoutLogNumberTextField
+            }
+            setRepsTextValue.value = it
+            onRepsChanged(exerciseSet, it.text.toInt())
         }
     }
+}
+
+@Composable
+fun WorkoutLogNumberTextField(textFieldValue: MutableState<TextFieldValue>, modifier: Modifier, onValueChanged: (TextFieldValue) -> Unit) {
+    TextField(
+        value = textFieldValue.value,
+        modifier = Modifier
+            .then(modifier)
+            .onFocusSelectAll(textFieldValue),
+        maxLines = 1,
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        shape = RoundedCornerShape(8.dp),
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = Grey200,
+            focusedIndicatorColor = Color.Transparent, //hide the indicator
+            unfocusedIndicatorColor = Color.Transparent,
+            cursorColor = Color.White
+        ),
+        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+        onValueChange = onValueChanged
+    )
 }
 
 @Composable
@@ -286,11 +330,12 @@ fun AddSetButton(exerciseAndSets: ExerciseAndExerciseSets, onAddSetButtonClicked
         Button(
             onClick = { onAddSetButtonClicked(exerciseAndSets) },
             shape = Shapes.small,
+            colors = ButtonDefaults.buttonColors(backgroundColor = Green200),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 32.dp, end = 32.dp)
         ) {
-            Text("ADD SET")
+            Text("ADD SET", color = Grey800)
         }
     }
 }

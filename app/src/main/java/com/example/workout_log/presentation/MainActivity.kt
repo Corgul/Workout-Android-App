@@ -9,15 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
+import androidx.navigation.*
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.util.WorkoutAppLogger
 import com.example.workout_log.presentation.add_exercise.AddExerciseScreen
@@ -110,7 +108,9 @@ fun BottomNav(navController: NavController) {
                         // reselecting the same item
                         launchSingleTop = true
                         // Restore state when reselecting a previously selected item
-                        restoreState = true
+                        if (screen !is Screen.WorkoutLogScreen) {
+                            restoreState = true
+                        }
                     }
                 }
             )

@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.util.formatDate
 import com.example.workout_log.presentation.calendar.components.BottomSheet
@@ -59,7 +60,11 @@ fun AddNewWorkoutButton(navController: NavController, scaffoldState: BottomSheet
                 scope.launch { scaffoldState.snackbarHostState.showSnackbar(message = "Please select a date") }
             } else {
                 Toast.makeText(context, "Add Exercises for ${selectedDate.formatDate()} workout", Toast.LENGTH_LONG).show()
-                navController.navigate(Screen.WorkoutLogScreen.route + "?workoutDate=${selectedDate.toEpochDay()}")
+                navController.navigate(Screen.WorkoutLogScreen.route + "?workoutDate=${selectedDate.toEpochDay()}") {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                }
             }
         },
         shape = Shapes.small,
@@ -74,6 +79,10 @@ fun AddNewWorkoutButton(navController: NavController, scaffoldState: BottomSheet
 
 private fun onGoToWorkoutClicked(navController: NavController, workout: Workout?) {
     workout?.let {
-        navController.navigate(Screen.WorkoutLogScreen.route + "?workoutDate=${it.date.toEpochDay()}")
+        navController.navigate(Screen.WorkoutLogScreen.route + "?workoutDate=${it.date.toEpochDay()}") {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+        }
     }
 }
