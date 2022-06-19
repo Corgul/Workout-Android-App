@@ -11,10 +11,12 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DynamicFeed
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.Workout
@@ -31,7 +33,7 @@ fun ExerciseBottomSheet(
     bottomSheetState: ModalBottomSheetState
 ) {
     Column() {
-        DeleteRow(rowText = "Delete Exercise") {
+        BottomSheetRow(rowText = "Delete Exercise", Icons.Default.Delete) {
             coroutineScope.launch { bottomSheetState.hide() }
             viewModel.deleteExercise(exercise)
         }
@@ -46,8 +48,16 @@ fun WorkoutBottomSheet(
     coroutineScope: CoroutineScope,
     bottomSheetState: ModalBottomSheetState
 ) {
-    Column() {
-        DeleteRow(rowText = "Delete Workout") {
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        BottomSheetRow(rowText = "Edit Workout Name", rowIcon = Icons.Default.Edit) {
+            // Launch edit workout name dialog
+        }
+        
+        BottomSheetRow(rowText = "Reorder Exercises", rowIcon = Icons.Default.DynamicFeed) {
+            viewModel.showReorderExerciseDialog()
+        }
+        
+        BottomSheetRow(rowText = "Delete Workout", Icons.Default.Delete) {
             coroutineScope.launch { bottomSheetState.hide() }
             viewModel.deleteWorkout(workout)
         }
@@ -55,17 +65,17 @@ fun WorkoutBottomSheet(
 }
 
 @Composable
-fun DeleteRow(rowText: String, onDelete: () -> Unit) {
+fun BottomSheetRow(rowText: String, rowIcon: ImageVector, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onDelete()
+                onClick()
             }
-            .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 24.dp)
+            .padding(vertical = 16.dp, horizontal = 16.dp)
     ) {
-        Icon(imageVector = Icons.Default.Delete, contentDescription = rowText, modifier = Modifier.padding(end = 8.dp))
+        Icon(imageVector = rowIcon, contentDescription = rowText, modifier = Modifier.padding(end = 8.dp))
         Text(text = rowText, modifier = Modifier.padding(start = 8.dp))
     }
 }

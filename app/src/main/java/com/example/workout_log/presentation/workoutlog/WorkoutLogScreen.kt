@@ -13,14 +13,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.debugInspectorInfo
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -32,14 +27,13 @@ import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
-import com.example.workout_log.domain.util.WorkoutAppLogger
 import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.presentation.util.WorkoutNameHelper
 import com.example.workout_log.presentation.util.extensions.onFocusSelectAll
 import com.example.workout_log.presentation.workoutlog.components.ExerciseBottomSheet
+import com.example.workout_log.presentation.workoutlog.components.ReorderExercisesDialog
 import com.example.workout_log.presentation.workoutlog.components.WorkoutBottomSheet
 import com.example.workout_log.ui.theme.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
@@ -114,6 +108,7 @@ fun WorkoutLogScaffold(
 ) {
     val scaffoldState = rememberScaffoldState()
     val state = viewModel.state.value
+    val dialogsState = viewModel.dialogState.value
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -131,6 +126,13 @@ fun WorkoutLogScaffold(
             }
         }
     ) {
+        ReorderExercisesDialog(
+            show = dialogsState.showReorderExerciseDialog,
+            state.exercisesAndSets.map { it.exercise },
+            onDismiss = viewModel::onReorderExerciseDialogDismissed,
+            onConfirm = viewModel::onReorderExerciseDialogConfirmed
+        )
+
         WorkoutLog(
             state.exercisesAndSets,
             viewModel::onAddSetButtonClicked,

@@ -10,5 +10,10 @@ data class WorkoutWithExercisesAndSets(
         parentColumn = "WorkoutID",
         entityColumn = "WorkoutID"
     )
-    val exercisesAndSets: List<ExerciseAndExerciseSets>
-)
+    private val exercisesAndSets: List<ExerciseAndExerciseSets>
+) {
+    /**
+     * Returns a list of exercises ordered by their position
+     */
+    fun getExercisesAndSets(): List<ExerciseAndExerciseSets> = exercisesAndSets.sortedBy { it.exercise.exercisePosition }
+}

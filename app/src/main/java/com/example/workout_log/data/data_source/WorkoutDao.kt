@@ -1,9 +1,6 @@
 package com.example.workout_log.data.data_source
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.model.WorkoutWithExercisesAndSets
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +20,7 @@ interface WorkoutDao {
     @Query("SELECT * FROM Workouts WHERE WorkoutID = :workoutId")
     suspend fun getWorkoutForId(workoutId: Long): Workout
 
+    @Transaction
     @Query("SELECT * FROM Workouts WHERE Date = :workoutDate")
     fun getExercisesAndSetsForWorkout(workoutDate: LocalDate): Flow<WorkoutWithExercisesAndSets?>
 

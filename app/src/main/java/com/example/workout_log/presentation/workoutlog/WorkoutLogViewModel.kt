@@ -27,6 +27,9 @@ class WorkoutLogViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = mutableStateOf(WorkoutLogState())
     val state: State<WorkoutLogState> = _state
+    private val _dialogState = mutableStateOf(WorkoutLogDialogsState())
+    val dialogState: State<WorkoutLogDialogsState> = _dialogState
+
     private val workoutDate: LocalDate
     // Update the exercises and sets based on the currently selected workout
     private val workoutWithExercisesAndSets: Flow<WorkoutWithExercisesAndSets?>
@@ -48,7 +51,7 @@ class WorkoutLogViewModel @Inject constructor(
             }
             WorkoutAppLogger.d("Got new exercises and sets")
             _state.value = state.value.copy(
-                exercisesAndSets = workoutWithExercisesAndSets.exercisesAndSets,
+                exercisesAndSets = workoutWithExercisesAndSets.getExercisesAndSets(),
                 workout = workoutWithExercisesAndSets.workout
             )
         }.launchIn(viewModelScope)
@@ -82,7 +85,10 @@ class WorkoutLogViewModel @Inject constructor(
 
     fun deleteExercise(exercise: Exercise) {
         viewModelScope.launch {
+            val deletedPosition = exercise.exercisePosition
+            val workoutId = exercise.workoutId
             exerciseBottomSheetUseCases.deleteExercise(exercise)
+            updateExercisePositionsForDeletedExercise(deletedPosition, workoutId)
         }
     }
 
@@ -95,4 +101,51 @@ class WorkoutLogViewModel @Inject constructor(
             workoutBottomSheetUseCases.deleteWorkout(workout)
         }
     }
+
+    /**
+     * Function that shifts all exercise positions for a given workout down by 1.
+     * This function is meant to be called after an exercise is deleted so that it can rearrange the exercise positions to be valid
+     */
+    private suspend fun updateExercisePositionsForDeletedExercise(deletedPosition: Int, workoutId: Long) {
+        var exercises = logUseCases.getExercisesForWorkout(workoutId)
+        if (exercises.isEmpty()) {
+            // Delete workout if there are no more exercises
+            deleteWorkout(state.value.workout)
+            return
+        }
+
+        exercises = exercises.slice(deletedPosition-1 until exercises.size)
+
+        var newPosition = deletedPosition
+        exercises.forEach { exercise ->
+            exercise.exercisePosition = newPosition
+            newPosition += 1
+        }
+
+        logUseCases.updateExercises(exercises)
+    }
+
+    //region Dialogs
+    fun showReorderExerciseDialog() {
+        _dialogState.value = WorkoutLogDialogsState(true)
+    }
+
+    fun onReorderExerciseDialogDismissed() {
+        dismissReorderExerciseDialog()
+    }
+
+    fun onReorderExerciseDialogConfirmed(exercises: List<Exercise>) {
+        viewModelScope.launch {
+            val exercise1 = exercises[0].copy(exercisePosition = 2).also { it.exerciseId = exercises[0].exerciseId }
+            val exercise2 = exercises[1].copy(exercisePosition = 1).also { it.exerciseId = exercises[1].exerciseId }
+            val newList = listOf(exercise1, exercise2)
+            logUseCases.updateExercises(newList)
+            dismissReorderExerciseDialog()
+        }
+    }
+
+    private fun dismissReorderExerciseDialog() {
+        _dialogState.value = WorkoutLogDialogsState(false)
+    }
+    //endregion
 }

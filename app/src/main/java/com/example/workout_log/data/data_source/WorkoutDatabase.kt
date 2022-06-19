@@ -10,7 +10,7 @@ import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
 
-@Database(entities = [Workout::class, Exercise::class, ExerciseSet::class], version = 2)
+@Database(entities = [Workout::class, Exercise::class, ExerciseSet::class], version = 3)
 @TypeConverters(Converters::class)
 abstract class WorkoutDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao

@@ -5,16 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.workout_log.domain.common.WorkoutDataStore
 import com.example.workout_log.domain.model.ExerciseName
 import com.example.workout_log.domain.model.ExerciseType
 import com.example.workout_log.domain.model.ExerciseTypeWithNames
-import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.use_cases.add_exercise.AddExerciseUseCases
 import com.example.workout_log.domain.util.WorkoutAppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -109,8 +106,9 @@ class AddExerciseViewModel @Inject constructor(
     private suspend fun saveExercises(onExercisesSaved: (workoutDateLong: Long) -> Unit) {
         val workout = useCases.getWorkoutByDate(workoutDate)
         val workoutId = workout?.workoutId ?: useCases.createWorkout(workoutDate)
+        val numberOfExercisesForWorkout = useCases.getNumberOfExercisesForWorkout(workoutId)
 
-        useCases.saveExercises(workoutId, selectedExerciseNames.toList())
+        useCases.saveExercises(workoutId, numberOfExercisesForWorkout, selectedExerciseNames.toList())
 
         onExercisesSaved(workoutDate.toEpochDay())
     }

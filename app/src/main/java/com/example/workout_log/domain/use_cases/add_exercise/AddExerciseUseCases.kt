@@ -8,5 +8,6 @@ class AddExerciseUseCases @Inject constructor(
     val getExerciseTypesWithExerciseNames: GetExerciseTypesWithExerciseNames,
     val saveExercises: SaveExercises,
     val createWorkout: CreateWorkout,
-    val getWorkoutByDate: GetWorkoutByDate
+    val getWorkoutByDate: GetWorkoutByDate,
+    val getNumberOfExercisesForWorkout: GetNumberOfExercisesForWorkout
 )

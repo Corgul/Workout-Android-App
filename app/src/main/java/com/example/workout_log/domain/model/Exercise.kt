@@ -4,7 +4,6 @@ import android.os.Parcelable
 import androidx.annotation.NonNull
 import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
-import java.time.LocalDate
 
 @kotlinx.parcelize.Parcelize
 @Entity(
@@ -28,7 +27,10 @@ data class Exercise(
     val exerciseTypeName: String,
 
     @ColumnInfo(name = "ExerciseName")
-    val exerciseName: String
+    val exerciseName: String,
+
+    @ColumnInfo(name = "ExercisePositionNumber")
+    var exercisePosition: Int
 ) : Parcelable {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "ExerciseID")
@@ -36,10 +38,12 @@ data class Exercise(
     var exerciseId: Long = 0L
 
     companion object {
-        fun from(workoutId: Long, exerciseNameList: List<ExerciseName>): List<Exercise> {
+        fun from(workoutId: Long, numberOfWorkoutsForExercise: Int, exerciseNameList: List<ExerciseName>): List<Exercise> {
+            var exercisePosition = numberOfWorkoutsForExercise + 1
             val list = mutableListOf<Exercise>()
             exerciseNameList.forEach { exerciseName ->
-                list.add(exerciseName.toExercise(workoutId))
+                list.add(exerciseName.toExercise(workoutId, exercisePosition))
+                exercisePosition += 1
             }
             return list
         }

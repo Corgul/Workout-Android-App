@@ -164,7 +164,7 @@ fun BottomSheetExpandedContent(
 
     WorkoutHeader(workoutWithExercisesAndSets.workout, collapsedVisibilityFraction)
 
-    ExerciseCards(workoutWithExercisesAndSets.exercisesAndSets, onGoToWorkoutClicked = onGoToWorkoutClicked)
+    ExerciseCards(workoutWithExercisesAndSets.getExercisesAndSets(), onGoToWorkoutClicked = onGoToWorkoutClicked)
 }
 
 @Composable

@@ -14,6 +14,15 @@ import javax.inject.Singleton
 class ExerciseRepositoryImpl @Inject constructor(
     private val exerciseDao: ExerciseDao
 ) : ExerciseRepository {
+    override suspend fun getNumberOfExercisesForWorkout(workoutId: Long): Int =
+        exerciseDao.getNumberOfExercisesForWorkout(workoutId)
+
+    override suspend fun getExercisesForWorkout(workoutId: Long): List<Exercise> =
+        exerciseDao.getExercisesForWorkout(workoutId)
+
+    override suspend fun updateExercises(exercises: List<Exercise>) =
+        exerciseDao.updateExercises(exercises)
+
     override suspend fun insertExercises(exercises: List<Exercise>): List<Long> =
         exerciseDao.insertExercises(exercises)
 
