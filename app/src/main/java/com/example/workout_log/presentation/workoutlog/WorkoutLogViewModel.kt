@@ -134,12 +134,13 @@ class WorkoutLogViewModel @Inject constructor(
         dismissReorderExerciseDialog()
     }
 
+    /**
+     * The list of exercises will need their positions rearranged
+     */
     fun onReorderExerciseDialogConfirmed(exercises: List<Exercise>) {
         viewModelScope.launch {
-            val exercise1 = exercises[0].copy(exercisePosition = 2).also { it.exerciseId = exercises[0].exerciseId }
-            val exercise2 = exercises[1].copy(exercisePosition = 1).also { it.exerciseId = exercises[1].exerciseId }
-            val newList = listOf(exercise1, exercise2)
-            logUseCases.updateExercises(newList)
+            exercises.toMutableList().forEachIndexed { index, exercise -> exercise.exercisePosition = index + 1 }
+            logUseCases.updateExercises(exercises)
             dismissReorderExerciseDialog()
         }
     }

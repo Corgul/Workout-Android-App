@@ -91,8 +91,11 @@ dependencies {
     // Gson
     implementation "com.google.code.gson:gson:2.8.9"
 
-    // Third party calendar since Compose doesn't have one yet
+    // Third party
+    // Calendar
     implementation "io.github.boguszpawlowski.composecalendar:composecalendar:0.3.0"
+    // Drag and drop list
+    implementation "org.burnoutcrew.composereorderable:reorderable:0.9.2"
 
     // Testing
     testImplementation 'junit:junit:4.+'

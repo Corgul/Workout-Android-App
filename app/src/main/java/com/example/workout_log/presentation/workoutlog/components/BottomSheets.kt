@@ -54,6 +54,7 @@ fun WorkoutBottomSheet(
         }
         
         BottomSheetRow(rowText = "Reorder Exercises", rowIcon = Icons.Default.DynamicFeed) {
+            coroutineScope.launch { bottomSheetState.hide() }
             viewModel.showReorderExerciseDialog()
         }
         

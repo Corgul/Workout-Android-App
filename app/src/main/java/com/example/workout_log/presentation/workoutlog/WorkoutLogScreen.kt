@@ -273,8 +273,8 @@ fun ExerciseSetRow(
         
         Spacer(modifier = Modifier.weight(1f))
 
-        val setWeightTextValue = remember { mutableStateOf(TextFieldValue(exerciseSet.weight.toString())) }
-        val setRepsTextValue = remember { mutableStateOf(TextFieldValue(exerciseSet.reps.toString())) }
+        val setWeightTextValue = remember(exerciseSet.exerciseId) { mutableStateOf(TextFieldValue(exerciseSet.weight.toString())) }
+        val setRepsTextValue = remember(exerciseSet.exerciseId) { mutableStateOf(TextFieldValue(exerciseSet.reps.toString())) }
         val maxWeightCharacters = 3
         val maxRepCharacters = 2
 
