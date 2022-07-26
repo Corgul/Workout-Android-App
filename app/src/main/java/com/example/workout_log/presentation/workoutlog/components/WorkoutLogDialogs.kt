@@ -1,5 +1,6 @@
 package com.example.workout_log.presentation.workoutlog.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.util.WorkoutAppLogger
+import com.example.workout_log.ui.theme.Grey500
 import org.burnoutcrew.reorderable.ItemPosition
 
 @Composable
@@ -40,13 +42,13 @@ fun ReorderExercisesDialog(
                 shape = RoundedCornerShape(12.dp)
             ) {
 
-                Column(modifier = Modifier.padding(8.dp)) {
+                Column(modifier = Modifier.background(Grey500)) {
 
                     Text(
                         text = "Reorder Exercises",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 

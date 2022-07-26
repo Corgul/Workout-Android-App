@@ -5,13 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
@@ -31,6 +25,7 @@ fun <T : Any> ReorderableList(
         modifier = Modifier
             .reorderable(state)
             .detectReorderAfterLongPress(state)
+            .heightIn(max = 550.dp)
     ) {
         items(data, { it }) { item ->
             ReorderableItem(state, key = item) { isDragging ->

@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 val Grey800 = Color(0xFF121212)
 val Grey500 = Color(0xFF212121)
+val Grey450 = Color(0xFF484848)
 val Grey400 = Color(0xFF757575)
 val Grey200 = Color(0xFF484848)
 val Grey100 = Color(0xFFa2a2a2)
