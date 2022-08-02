@@ -148,5 +148,24 @@ class WorkoutLogViewModel @Inject constructor(
     private fun dismissReorderExerciseDialog() {
         _dialogState.value = WorkoutLogDialogsState(false)
     }
+
+    fun showEditWorkoutNameDialog() {
+        _dialogState.value = WorkoutLogDialogsState(showEditWorkoutNameDialog = true)
+    }
+
+    fun onEditWorkoutNameDialogDismissed() {
+        dismissEditWorkoutNameDialog()
+    }
+
+    fun onEditWorkoutNameDialogConfirmed(newWorkoutName: String, workout: Workout) {
+        viewModelScope.launch {
+            logUseCases.updateWorkoutName(workout, newWorkoutName)
+            dismissEditWorkoutNameDialog()
+        }
+    }
+
+    private fun dismissEditWorkoutNameDialog() {
+        _dialogState.value = WorkoutLogDialogsState(showEditWorkoutNameDialog = false)
+    }
     //endregion
 }

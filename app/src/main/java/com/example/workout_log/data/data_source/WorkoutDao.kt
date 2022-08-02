@@ -32,4 +32,7 @@ interface WorkoutDao {
 
     @Delete
     suspend fun deleteWorkout(workout: Workout)
+
+    @Update
+    suspend fun updateWorkout(workout: Workout)
 }

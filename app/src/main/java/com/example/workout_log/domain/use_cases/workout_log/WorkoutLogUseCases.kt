@@ -9,5 +9,6 @@ data class WorkoutLogUseCases @Inject constructor(
     val updateExercises: UpdateExercises,
     val updateSetWeight: UpdateSetWeight,
     val updateSetReps: UpdateSetReps,
+    val updateWorkoutName: UpdateWorkoutName,
     val addSet: AddSet
 )

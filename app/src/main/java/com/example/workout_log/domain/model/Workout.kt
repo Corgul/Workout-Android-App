@@ -14,7 +14,7 @@ import java.time.LocalDate
 )
 data class Workout(
     @ColumnInfo(name = "WorkoutName")
-    val workoutName: String = "",
+    var workoutName: String = "",
 
     @ColumnInfo(name = "Date")
     val date: LocalDate

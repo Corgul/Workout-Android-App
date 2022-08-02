@@ -27,4 +27,6 @@ class WorkoutRepositoryImpl @Inject constructor(
     override fun getWorkoutDays(): Flow<List<LocalDate>> = workoutDao.getWorkoutDays()
 
     override suspend fun deleteWorkout(workout: Workout) = workoutDao.deleteWorkout(workout)
+
+    override suspend fun updateWorkout(workout: Workout) = workoutDao.updateWorkout(workout)
 }

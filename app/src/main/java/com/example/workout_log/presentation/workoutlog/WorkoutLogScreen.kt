@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +33,7 @@ import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.presentation.util.WorkoutNameHelper
 import com.example.workout_log.presentation.util.extensions.onFocusSelectAll
+import com.example.workout_log.presentation.workoutlog.components.EditWorkoutNameDialog
 import com.example.workout_log.presentation.workoutlog.components.ExerciseBottomSheet
 import com.example.workout_log.presentation.workoutlog.components.ReorderExercisesDialog
 import com.example.workout_log.presentation.workoutlog.components.WorkoutBottomSheet
@@ -61,7 +65,9 @@ fun WorkoutLogScreen(
 fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel: WorkoutLogViewModel) {
     val modalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
+    val scaffoldState = rememberScaffoldState()
     var currentBottomSheet by remember { mutableStateOf<WorkoutLogBottomSheet>(WorkoutLogBottomSheet.WorkoutBottomSheet) }
+    val state = viewModel.state.value
 
     val openBottomSheet: (bottomSheet: WorkoutLogBottomSheet) -> Unit = {
         currentBottomSheet = it
@@ -81,9 +87,11 @@ fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel:
             } else {
                 WorkoutBottomSheet(
                     viewModel = viewModel,
-                    workout = viewModel.state.value.workout,
+                    workout = state.workout,
+                    state.exercisesAndSets.map { it.exercise },
                     coroutineScope = coroutineScope,
-                    bottomSheetState = modalBottomSheetState
+                    bottomSheetState = modalBottomSheetState,
+                    scaffoldState = scaffoldState
                 )
             }
         }
@@ -92,7 +100,8 @@ fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel:
             navController = navController,
             viewModel = viewModel,
             workoutDate = workoutDate,
-            openBottomSheet = openBottomSheet
+            openBottomSheet = openBottomSheet,
+            scaffoldState = scaffoldState
         )
     }
 }
@@ -104,9 +113,9 @@ fun WorkoutLogScaffold(
     navController: NavController,
     viewModel: WorkoutLogViewModel,
     workoutDate: Long,
-    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
+    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit,
+    scaffoldState: ScaffoldState
 ) {
-    val scaffoldState = rememberScaffoldState()
     val state = viewModel.state.value
     val dialogsState = viewModel.dialogState.value
 
@@ -126,6 +135,12 @@ fun WorkoutLogScaffold(
             }
         }
     ) {
+        EditWorkoutNameDialog(
+            show = dialogsState.showEditWorkoutNameDialog,
+            workout = state.workout,
+            onDismiss = viewModel::onEditWorkoutNameDialogDismissed,
+            onConfirm = viewModel::onEditWorkoutNameDialogConfirmed
+        )
         ReorderExercisesDialog(
             show = dialogsState.showReorderExerciseDialog,
             state.exercisesAndSets.map { it.exercise },
@@ -270,7 +285,7 @@ fun ExerciseSetRow(
 ) {
     Row(modifier = Modifier.padding(rowPadding()), verticalAlignment = Alignment.CenterVertically) {
         Text(text = exerciseSet.setNumber.toString())
-        
+
         Spacer(modifier = Modifier.weight(1f))
 
         val setWeightTextValue = remember(exerciseSet.exerciseId) { mutableStateOf(TextFieldValue(exerciseSet.weight.toString())) }
@@ -278,22 +293,23 @@ fun ExerciseSetRow(
         val maxWeightCharacters = 3
         val maxRepCharacters = 2
 
-        WorkoutLogNumberTextField(
+        WorkoutLogTextField(
             textFieldValue = setWeightTextValue,
             Modifier
                 .padding(end = 56.dp)
-                .width(80.dp)
+                .width(80.dp),
+            true
         ) {
             if (it.text.length > maxWeightCharacters) {
-                return@WorkoutLogNumberTextField
+                return@WorkoutLogTextField
             }
             setWeightTextValue.value = it
             onWeightChanged(exerciseSet, it.text.toIntOrNull())
         }
 
-        WorkoutLogNumberTextField(textFieldValue = setRepsTextValue, Modifier.width(64.dp)) {
+        WorkoutLogTextField(textFieldValue = setRepsTextValue, Modifier.width(64.dp), true) {
             if (it.text.length > maxRepCharacters) {
-                return@WorkoutLogNumberTextField
+                return@WorkoutLogTextField
             }
             setRepsTextValue.value = it
             onRepsChanged(exerciseSet, it.text.toInt())
@@ -302,25 +318,50 @@ fun ExerciseSetRow(
 }
 
 @Composable
-fun WorkoutLogNumberTextField(textFieldValue: MutableState<TextFieldValue>, modifier: Modifier, onValueChanged: (TextFieldValue) -> Unit) {
-    TextField(
-        value = textFieldValue.value,
-        modifier = Modifier
-            .then(modifier)
-            .onFocusSelectAll(textFieldValue),
-        maxLines = 1,
-        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-        shape = RoundedCornerShape(8.dp),
-        colors = TextFieldDefaults.textFieldColors(
-            backgroundColor = Grey200,
-            focusedIndicatorColor = Color.Transparent, //hide the indicator
-            unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = Color.White
-        ),
-        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
-        onValueChange = onValueChanged
+fun WorkoutLogTextField(
+    textFieldValue: MutableState<TextFieldValue>,
+    modifier: Modifier,
+    isNumberTextField: Boolean,
+    colors: TextFieldColors = workoutLogTextFieldColors(),
+    textStyle: TextStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+    onValueChanged: (TextFieldValue) -> Unit
+) {
+    val customTextSelectionColors = TextSelectionColors(
+        handleColor = Indigo400,
+        backgroundColor = Indigo200.copy(alpha = 0.4f)
     )
+    CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors) {
+        val keyboardOptions =
+            if (isNumberTextField) KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number) else KeyboardOptions.Default
+        OutlinedTextField(
+            value = textFieldValue.value,
+            modifier = Modifier
+                .then(modifier)
+                .onFocusSelectAll(textFieldValue),
+            maxLines = 1,
+            keyboardOptions = keyboardOptions,
+            shape = RoundedCornerShape(8.dp),
+            colors = colors,
+            textStyle = textStyle,
+            onValueChange = onValueChanged
+        )
+    }
 }
+
+@Composable
+fun workoutLogTextFieldColors(
+    backgroundColor: Color = Grey200,
+    focusedIndicatorColor: Color = Indigo200,
+    unfocusedIndicatorColor: Color = Color.Transparent,
+    cursorColor: Color = Color.White
+): TextFieldColors =
+    TextFieldDefaults.textFieldColors(
+        backgroundColor = backgroundColor,
+        focusedIndicatorColor = focusedIndicatorColor,
+        unfocusedIndicatorColor = unfocusedIndicatorColor,
+        cursorColor = cursorColor
+    )
+
 
 @Composable
 fun AddSetButton(exerciseAndSets: ExerciseAndExerciseSets, onAddSetButtonClicked: (exerciseAndSets: ExerciseAndExerciseSets) -> Unit) {

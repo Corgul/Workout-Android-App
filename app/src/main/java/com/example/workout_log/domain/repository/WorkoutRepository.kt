@@ -21,4 +21,6 @@ interface WorkoutRepository {
     fun getWorkoutDays(): Flow<List<LocalDate>>
 
     suspend fun deleteWorkout(workout: Workout)
+
+    suspend fun updateWorkout(workout: Workout)
 }

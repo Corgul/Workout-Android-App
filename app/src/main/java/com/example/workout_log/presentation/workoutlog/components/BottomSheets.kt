@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DynamicFeed
@@ -45,16 +42,24 @@ fun ExerciseBottomSheet(
 fun WorkoutBottomSheet(
     viewModel: WorkoutLogViewModel,
     workout: Workout?,
+    exercises: List<Exercise>,
     coroutineScope: CoroutineScope,
-    bottomSheetState: ModalBottomSheetState
+    bottomSheetState: ModalBottomSheetState,
+    scaffoldState: ScaffoldState
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         BottomSheetRow(rowText = "Edit Workout Name", rowIcon = Icons.Default.Edit) {
-            // Launch edit workout name dialog
+            coroutineScope.launch { bottomSheetState.hide() }
+
+            viewModel.showEditWorkoutNameDialog()
         }
         
         BottomSheetRow(rowText = "Reorder Exercises", rowIcon = Icons.Default.DynamicFeed) {
             coroutineScope.launch { bottomSheetState.hide() }
+            if (exercises.size <= 1) {
+                coroutineScope.launch { scaffoldState.snackbarHostState.showSnackbar("You need more than 2 exercises to reorder") }
+                return@BottomSheetRow
+            }
             viewModel.showReorderExerciseDialog()
         }
         
