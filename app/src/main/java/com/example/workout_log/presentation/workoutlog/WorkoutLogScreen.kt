@@ -124,6 +124,14 @@ fun WorkoutLogScaffold(
         topBar = {
             WorkoutLogTopBar(state.workout, openBottomSheet, workoutDate)
         },
+        snackbarHost = {
+            SnackbarHost(it) { data ->
+                Snackbar(
+                    actionColor = Indigo700,
+                    snackbarData = data,
+                )
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {

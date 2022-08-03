@@ -11,9 +11,8 @@ import com.example.workout_log.domain.use_cases.workout_log.WorkoutBottomSheetUs
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutLogUseCases
 import com.example.workout_log.domain.util.WorkoutAppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -31,6 +30,7 @@ class WorkoutLogViewModel @Inject constructor(
     val dialogState: State<WorkoutLogDialogsState> = _dialogState
 
     private val workoutDate: LocalDate
+    private var cachedWorkoutLogState: WorkoutLogState? = null
     // Update the exercises and sets based on the currently selected workout
     private val workoutWithExercisesAndSets: Flow<WorkoutWithExercisesAndSets?>
 
@@ -92,14 +92,35 @@ class WorkoutLogViewModel @Inject constructor(
         }
     }
 
-    fun deleteWorkout(workout: Workout?) {
+    fun deleteWorkoutClicked(workout: Workout?) {
         if (workout == null) {
             return
         }
 
         viewModelScope.launch {
-            workoutBottomSheetUseCases.deleteWorkout(workout)
+            cachedWorkoutLogState = state.value
+            // Hide and cache the workout by setting it to nothing to give the user an opportunity to undo before deleting
+            _state.value = WorkoutLogState()
         }
+    }
+
+    fun deleteWorkoutSnackbarDismissed() {
+        viewModelScope.launch {
+            deleteWorkout(cachedWorkoutLogState?.workout)
+            cachedWorkoutLogState = null
+        }
+    }
+
+    fun deleteWorkoutSnackbarUndoClicked() {
+        _state.value = cachedWorkoutLogState?.copy() ?: WorkoutLogState()
+        cachedWorkoutLogState = null
+    }
+
+    private suspend fun deleteWorkout(workout: Workout?) {
+        if (workout == null) {
+            return
+        }
+        workoutBottomSheetUseCases.deleteWorkout(workout)
     }
 
     /**
