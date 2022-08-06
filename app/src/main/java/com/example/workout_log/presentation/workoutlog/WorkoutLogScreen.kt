@@ -82,7 +82,8 @@ fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel:
                     viewModel = viewModel,
                     exercise = (currentBottomSheet as WorkoutLogBottomSheet.ExerciseBottomSheet).exercise,
                     coroutineScope = coroutineScope,
-                    bottomSheetState = modalBottomSheetState
+                    bottomSheetState = modalBottomSheetState,
+                    scaffoldState = scaffoldState
                 )
             } else {
                 WorkoutBottomSheet(

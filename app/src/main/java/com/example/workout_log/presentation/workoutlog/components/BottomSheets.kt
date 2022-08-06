@@ -27,12 +27,20 @@ fun ExerciseBottomSheet(
     viewModel: WorkoutLogViewModel,
     exercise: Exercise,
     coroutineScope: CoroutineScope,
-    bottomSheetState: ModalBottomSheetState
+    bottomSheetState: ModalBottomSheetState,
+    scaffoldState: ScaffoldState
 ) {
     Column() {
         BottomSheetRow(rowText = "Delete Exercise", Icons.Default.Delete) {
-            coroutineScope.launch { bottomSheetState.hide() }
-            viewModel.deleteExercise(exercise)
+            coroutineScope.launch {
+                bottomSheetState.hide()
+                val snackbarResult = scaffoldState.snackbarHostState.showSnackbar("Deleted Exercise", actionLabel = "Undo")
+                when (snackbarResult) {
+                    SnackbarResult.Dismissed -> viewModel.deleteExerciseSnackbarDismissed(exercise)
+                    SnackbarResult.ActionPerformed -> viewModel.deleteExerciseSnackbarUndoClicked()
+                }
+            }
+            viewModel.deleteExerciseClicked(exercise)
         }
     }
 }
