@@ -14,7 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.workout_log.R
 import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.Workout
@@ -32,14 +35,15 @@ fun ExerciseBottomSheet(
     scaffoldState: ScaffoldState
 ) {
     Column() {
-        BottomSheetRow(rowText = "Edit Exercise", rowIcon = Icons.Default.Edit) {
+        val context = LocalContext.current
+        BottomSheetRow(rowText = stringResource(id = R.string.edit_exercise), rowIcon = Icons.Default.Edit) {
             coroutineScope.launch { bottomSheetState.hide() }
             viewModel.showEditExerciseDialog(exerciseAndExerciseSets)
         }
-        BottomSheetRow(rowText = "Delete Exercise", Icons.Default.Delete) {
+        BottomSheetRow(rowText = stringResource(id = R.string.delete_exercise), Icons.Default.Delete) {
             coroutineScope.launch {
                 bottomSheetState.hide()
-                val snackbarResult = scaffoldState.snackbarHostState.showSnackbar("Deleted Exercise", actionLabel = "Undo")
+                val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.deleted_exercise), actionLabel = context.resources.getString(R.string.undo))
                 when (snackbarResult) {
                     SnackbarResult.Dismissed -> viewModel.deleteExerciseSnackbarDismissed(exerciseAndExerciseSets.exercise)
                     SnackbarResult.ActionPerformed -> viewModel.deleteExerciseSnackbarUndoClicked()
@@ -61,25 +65,26 @@ fun WorkoutBottomSheet(
     scaffoldState: ScaffoldState
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        BottomSheetRow(rowText = "Edit Workout Name", rowIcon = Icons.Default.Edit) {
+        val context = LocalContext.current
+        BottomSheetRow(rowText = stringResource(id = R.string.edit_workout_name), rowIcon = Icons.Default.Edit) {
             coroutineScope.launch { bottomSheetState.hide() }
 
             viewModel.showEditWorkoutNameDialog()
         }
         
-        BottomSheetRow(rowText = "Reorder Exercises", rowIcon = Icons.Default.DynamicFeed) {
+        BottomSheetRow(rowText = stringResource(id = R.string.reorder_exercises), rowIcon = Icons.Default.DynamicFeed) {
             coroutineScope.launch { bottomSheetState.hide() }
             if (exercises.size <= 1) {
-                coroutineScope.launch { scaffoldState.snackbarHostState.showSnackbar("You need more than 2 exercises to reorder") }
+                coroutineScope.launch { scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.reorder_exercise_snackbar)) }
                 return@BottomSheetRow
             }
             viewModel.showReorderExerciseDialog()
         }
         
-        BottomSheetRow(rowText = "Delete Workout", Icons.Default.Delete) {
+        BottomSheetRow(rowText = stringResource(id = R.string.delete_workout), Icons.Default.Delete) {
             coroutineScope.launch {
                 bottomSheetState.hide()
-                val snackbarResult = scaffoldState.snackbarHostState.showSnackbar("Deleted Workout", actionLabel = "Undo")
+                val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.deleted_workout), actionLabel = context.resources.getString(R.string.undo))
                 when (snackbarResult) {
                     SnackbarResult.Dismissed -> viewModel.deleteWorkoutSnackbarDismissed()
                     SnackbarResult.ActionPerformed -> viewModel.deleteWorkoutSnackbarUndoClicked()

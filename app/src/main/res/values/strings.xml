@@ -1,3 +1,41 @@
 <resources>
     <string name="app_name">workout-log</string>
+
+    <!-- Calendar Screen -->
+    <string name="add_new_workout_button_snackbar">Please select a date</string>
+    <string name="add_exercises_for_workout_snackbar">"Add Exercises for %1$s workout"</string>
+    <string name="add_workout_for_date_button">Add Workout for Date</string>
+    <string name="go_to_workout">Go to Workout</string>
+    <string name="calendar_exercise_card_lbs">%1$d lbs</string>
+    <string name="calendar_exercise_card_reps">%1$d reps</string>
+    <string name="calendar_bottom_sheet_collapse_content_description">Collapse Bottom Sheet</string>
+    <string name="calendar_bottom_sheet_expand_content_description">Expand Bottom Sheet</string>
+    <string name="default_workout_name">Workout Name</string>
+
+    <!-- Workout Log Screen -->
+    <string name="workout_log_fab_content_description">Add Exercises</string>
+    <string name="workout_bottom_sheet_menu_content_description">Workout Bottom Sheet Menu</string>
+    <string name="exercise_bottom_sheet_menu_content_description">Exercise Bottom Sheet Menu</string>
+    <string name="sets">Sets</string>
+    <string name="lbs">lbs</string>
+    <string name="reps">Reps</string>
+    <string name="add_set_button">ADD SET</string>
+
+    <!-- Bottom Sheets -->
+    <string name="edit_exercise">Edit Exercise</string>
+    <string name="delete_exercise">Delete Exercise</string>
+    <string name="undo">Undo</string>
+    <string name="deleted_exercise">Deleted Exercise</string>
+    <string name="edit_workout_name">Edit Workout Name</string>
+    <string name="reorder_exercises">Reorder Exercises</string>
+    <string name="delete_workout">Delete Workout</string>
+    <string name="reorder_exercise_snackbar">You need more than 2 exercises to reorder</string>
+    <string name="deleted_workout">Deleted Workout</string>
+
+    <!-- Dialogs -->
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
+    <string name="edit_exercise_dialog_header">Edit $1%s</string>
+    <string name="delete_sets_content_description">Delete Sets</string>
+
 </resources>

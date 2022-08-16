@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -26,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.workout_log.R
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
@@ -36,14 +38,6 @@ import com.example.workout_log.presentation.workoutlog.components.*
 import com.example.workout_log.ui.theme.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-
-// TODO
-//Things to add for exercise operations
-//Delete set
-//Replace Exercise
-//Move position
-//
-//Show snackbar when deleting items
 
 @ExperimentalMaterialApi
 @ExperimentalCoroutinesApi
@@ -136,7 +130,7 @@ fun WorkoutLogScaffold(
                 },
                 modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
             ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Exercises")
+                Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(id = R.string.workout_log_fab_content_description))
             }
         }
     ) {
@@ -177,7 +171,7 @@ fun WorkoutLogTopBar(workout: Workout?, openBottomSheet: (bottomSheetType: Worko
         actions = {
             if (workout != null) {
                 IconButton(onClick = { openBottomSheet(WorkoutLogBottomSheet.WorkoutBottomSheet) }) {
-                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Workout Menu")
+                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(id = R.string.workout_bottom_sheet_menu_content_description))
                 }
             }
         }
@@ -253,7 +247,7 @@ fun ExerciseNameRow(
         IconButton(onClick = {
             openBottomSheet(WorkoutLogBottomSheet.ExerciseBottomSheet(exerciseAndSets))
         }) {
-            Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Exercise Menu")
+            Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(id = R.string.exercise_bottom_sheet_menu_content_description))
         }
     }
 }
@@ -266,19 +260,19 @@ fun ExerciseHeaderRow() {
             .padding(rowPadding())
     ) {
         Text(
-            text = "Set",
+            text = stringResource(id = R.string.sets),
             style = MaterialTheme.typography.subtitle1,
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
         Text(
-            text = "lbs",
+            text = stringResource(id = R.string.lbs),
             modifier = Modifier.padding(end = 116.dp)
         )
 
         Text(
-            text = "Reps",
+            text = stringResource(id = R.string.reps),
             modifier = Modifier.padding(end = 24.dp)
         )
     }
@@ -390,7 +384,7 @@ fun AddSetButton(exerciseAndSets: ExerciseAndExerciseSets, onAddSetButtonClicked
                 .fillMaxWidth()
                 .padding(start = 32.dp, end = 32.dp)
         ) {
-            Text("ADD SET", color = Grey800)
+            Text(text = stringResource(id = R.string.add_set_button), color = Grey800)
         }
     }
 }

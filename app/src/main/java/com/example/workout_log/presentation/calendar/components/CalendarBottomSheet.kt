@@ -16,12 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.workout_log.R
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.model.WorkoutWithExercisesAndSets
-import com.example.workout_log.domain.util.WorkoutAppLogger
 import com.example.workout_log.presentation.util.extensions.collapsedVisibilityFraction
 import com.example.workout_log.presentation.util.extensions.expandedVisibilityFraction
 import com.example.workout_log.ui.theme.Grey100
@@ -134,7 +135,7 @@ fun BottomSheetCollapsedContent(
     workout: Workout?,
     onGoToWorkoutClicked: () -> Unit
 ) {
-    Text(workout?.workoutName ?: "Workout Name")
+    Text(workout?.workoutName ?: stringResource(id = R.string.default_workout_name))
 
     GoToWorkoutButton(onGoToWorkoutClicked)
 }
@@ -221,9 +222,9 @@ fun ExerciseCard(exerciseAndSets: ExerciseAndExerciseSets) {
                     )
                     IconButton(onClick = { expanded = !expanded }) {
                         if (expanded) {
-                            Icon(imageVector = Icons.Filled.ExpandLess, contentDescription = "Collapse")
+                            Icon(imageVector = Icons.Filled.ExpandLess, contentDescription = stringResource(id = R.string.calendar_bottom_sheet_collapse_content_description))
                         } else {
-                            Icon(imageVector = Icons.Filled.ExpandMore, contentDescription = "Expand")
+                            Icon(imageVector = Icons.Filled.ExpandMore, contentDescription = stringResource(id = R.string.calendar_bottom_sheet_expand_content_description))
                         }
                     }
                 }
@@ -236,8 +237,8 @@ fun ExerciseCard(exerciseAndSets: ExerciseAndExerciseSets) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(exerciseSet.setNumber.toString(), style = MaterialTheme.typography.h6)
-                                Text("${exerciseSet.weight} lbs", style = MaterialTheme.typography.h6)
-                                Text("${exerciseSet.reps} reps", style = MaterialTheme.typography.h6)
+                                Text(text = stringResource(id = R.string.calendar_exercise_card_lbs, exerciseSet.weight), style = MaterialTheme.typography.h6)
+                                Text(text = stringResource(id = R.string.calendar_exercise_card_reps, exerciseSet.reps), style = MaterialTheme.typography.h6)
                             }
                         }
                     }
@@ -254,6 +255,6 @@ fun GoToWorkoutButton(onClicked: () -> Unit, modifier: Modifier = Modifier) {
         colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary),
         modifier = modifier
     ) {
-        Text("Go to Workout")
+        Text(text = stringResource(id = R.string.go_to_workout))
     }
 }

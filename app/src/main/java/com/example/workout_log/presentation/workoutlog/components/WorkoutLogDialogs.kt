@@ -10,12 +10,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.workout_log.R
 import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
@@ -44,7 +46,7 @@ fun EditWorkoutNameDialog(
             Card(elevation = 8.dp, shape = RoundedCornerShape(12.dp)) {
                 Column(modifier = Modifier.background(Grey500)) {
                     Text(
-                        text = "Edit Workout Name",
+                        text = stringResource(id = R.string.edit_workout_name),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp)
@@ -76,13 +78,13 @@ fun EditWorkoutNameDialog(
                     ) {
 
                         TextButton(onClick = onDismiss) {
-                            Text(text = "CANCEL", style = LocalTextStyle.current.copy(color = Color.White))
+                            Text(text = stringResource(id = R.string.cancel), style = LocalTextStyle.current.copy(color = Color.White))
                         }
                         Spacer(modifier = Modifier.width(4.dp))
                         TextButton(onClick = {
                             onConfirm(workoutNameTextValue.value.text, workout)
                         }) {
-                            Text(text = "OK", style = LocalTextStyle.current.copy(color = Color.White))
+                            Text(text = stringResource(id = R.string.ok), style = LocalTextStyle.current.copy(color = Color.White))
                         }
                     }
                 }
@@ -117,7 +119,7 @@ fun ReorderExercisesDialog(
                 Column(modifier = Modifier.background(Grey500)) {
 
                     Text(
-                        text = "Reorder Exercises",
+                        text = stringResource(id = R.string.reorder_exercises),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp)
@@ -133,14 +135,14 @@ fun ReorderExercisesDialog(
                     ) {
 
                         TextButton(onClick = onDismiss) {
-                            Text(text = "CANCEL", style = LocalTextStyle.current.copy(color = Color.White))
+                            Text(text = stringResource(id = R.string.cancel), style = LocalTextStyle.current.copy(color = Color.White))
                         }
                         Spacer(modifier = Modifier.width(4.dp))
                         TextButton(onClick = {
                             WorkoutAppLogger.d("new exercise list: $exerciseList")
                             onConfirm(exerciseList)
                         }) {
-                            Text(text = "OK", style = LocalTextStyle.current.copy(color = Color.White))
+                            Text(text = stringResource(id = R.string.ok), style = LocalTextStyle.current.copy(color = Color.White))
                         }
                     }
                 }
@@ -164,7 +166,7 @@ fun EditExerciseDialog(
             Card(elevation = 8.dp, shape = RoundedCornerShape(12.dp)) {
                 Column(modifier = Modifier.background(Grey500)) {
                     Text(
-                        text = "Edit ${dialogState.exerciseAndExerciseSets.exercise.exerciseName}",
+                        text = stringResource(id = R.string.edit_exercise_dialog_header),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp, end = 16.dp)
@@ -176,9 +178,9 @@ fun EditExerciseDialog(
                             .fillMaxWidth()
                             .padding(start = 86.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)
                     ) {
-                        Text("Set")
-                        Text("lbs")
-                        Text("Reps")
+                        Text(text = stringResource(id = R.string.sets))
+                        Text(text = stringResource(id = R.string.lbs))
+                        Text(text = stringResource(id = R.string.reps))
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -195,7 +197,7 @@ fun EditExerciseDialog(
                             IconButton(onClick = {
                                 onDelete(dialogState.exerciseAndExerciseSets, editExerciseDialogState.checkedSets)
                             }) {
-                                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete Sets")
+                                Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(id = R.string.delete_sets_content_description))
                             }
                             Text(
                                 text = "(${editExerciseDialogState.checkedSets.size})",
@@ -206,13 +208,13 @@ fun EditExerciseDialog(
                         Spacer(modifier = Modifier.weight(1f))
 
                         TextButton(onClick = onDismiss) {
-                            Text(text = "CANCEL", style = LocalTextStyle.current.copy(color = Color.White))
+                            Text(text = stringResource(id = R.string.cancel), style = LocalTextStyle.current.copy(color = Color.White))
                         }
                         Spacer(modifier = Modifier.width(4.dp))
                         TextButton(onClick = {
                             onConfirm(editExerciseDialogState.reorderableSetList)
                         }) {
-                            Text(text = "OK", style = LocalTextStyle.current.copy(color = Color.White))
+                            Text(text = stringResource(id = R.string.ok), style = LocalTextStyle.current.copy(color = Color.White))
                         }
                     }
                 }
