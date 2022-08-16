@@ -11,5 +11,5 @@ data class ExerciseAndExerciseSets(
         parentColumn = "ExerciseID",
         entityColumn = "ExerciseID"
     )
-    val sets: List<ExerciseSet>
+    var sets: List<ExerciseSet>
 )

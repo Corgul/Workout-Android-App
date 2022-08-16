@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.workout_log.domain.model.Exercise
+import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.presentation.workoutlog.WorkoutLogViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -25,22 +26,26 @@ import kotlinx.coroutines.launch
 @Composable
 fun ExerciseBottomSheet(
     viewModel: WorkoutLogViewModel,
-    exercise: Exercise,
+    exerciseAndExerciseSets: ExerciseAndExerciseSets,
     coroutineScope: CoroutineScope,
     bottomSheetState: ModalBottomSheetState,
     scaffoldState: ScaffoldState
 ) {
     Column() {
+        BottomSheetRow(rowText = "Edit Exercise", rowIcon = Icons.Default.Edit) {
+            coroutineScope.launch { bottomSheetState.hide() }
+            viewModel.showEditExerciseDialog(exerciseAndExerciseSets)
+        }
         BottomSheetRow(rowText = "Delete Exercise", Icons.Default.Delete) {
             coroutineScope.launch {
                 bottomSheetState.hide()
                 val snackbarResult = scaffoldState.snackbarHostState.showSnackbar("Deleted Exercise", actionLabel = "Undo")
                 when (snackbarResult) {
-                    SnackbarResult.Dismissed -> viewModel.deleteExerciseSnackbarDismissed(exercise)
+                    SnackbarResult.Dismissed -> viewModel.deleteExerciseSnackbarDismissed(exerciseAndExerciseSets.exercise)
                     SnackbarResult.ActionPerformed -> viewModel.deleteExerciseSnackbarUndoClicked()
                 }
             }
-            viewModel.deleteExerciseClicked(exercise)
+            viewModel.deleteExerciseClicked(exerciseAndExerciseSets.exercise)
         }
     }
 }

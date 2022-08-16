@@ -1,9 +1,12 @@
 package com.example.workout_log.domain.model
 
+import android.os.Parcelable
 import androidx.annotation.NonNull
 import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(
     tableName = "ExerciseSets",
     foreignKeys = [
@@ -22,14 +25,14 @@ data class ExerciseSet(
     val exerciseId: Long = 0,
 
     @ColumnInfo(name = "SetNumber")
-    val setNumber: Int = 1,
+    var setNumber: Int = 1,
 
     @ColumnInfo(name = "Reps")
     var reps: Int = 0,
 
     @ColumnInfo(name = "Weight")
     var weight: Int = 0
-) {
+) : Parcelable {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "ExerciseSetID")
     @NonNull

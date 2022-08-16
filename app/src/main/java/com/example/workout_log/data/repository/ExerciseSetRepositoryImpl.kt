@@ -13,6 +13,12 @@ class ExerciseSetRepositoryImpl @Inject constructor(
     override suspend fun updateExerciseSet(exerciseSet: ExerciseSet) =
         exerciseSetDao.updateExerciseSet(exerciseSet)
 
+    override suspend fun updateExerciseSets(exerciseSets: List<ExerciseSet>) =
+        exerciseSetDao.updateExerciseSets(exerciseSets)
+
+    override suspend fun deleteSets(exerciseSets: List<ExerciseSet>) =
+        exerciseSetDao.deleteSets(exerciseSets)
+
     override suspend fun insertSet(set: ExerciseSet) =
         exerciseSetDao.insertSet(set)
 }

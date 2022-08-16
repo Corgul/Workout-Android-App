@@ -26,17 +26,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.presentation.util.WorkoutNameHelper
 import com.example.workout_log.presentation.util.extensions.onFocusSelectAll
-import com.example.workout_log.presentation.workoutlog.components.EditWorkoutNameDialog
-import com.example.workout_log.presentation.workoutlog.components.ExerciseBottomSheet
-import com.example.workout_log.presentation.workoutlog.components.ReorderExercisesDialog
-import com.example.workout_log.presentation.workoutlog.components.WorkoutBottomSheet
+import com.example.workout_log.presentation.workoutlog.components.*
 import com.example.workout_log.ui.theme.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -80,7 +76,7 @@ fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel:
             if (currentBottomSheet is WorkoutLogBottomSheet.ExerciseBottomSheet) {
                 ExerciseBottomSheet(
                     viewModel = viewModel,
-                    exercise = (currentBottomSheet as WorkoutLogBottomSheet.ExerciseBottomSheet).exercise,
+                    exerciseAndExerciseSets = (currentBottomSheet as WorkoutLogBottomSheet.ExerciseBottomSheet).exerciseAndExerciseSets,
                     coroutineScope = coroutineScope,
                     bottomSheetState = modalBottomSheetState,
                     scaffoldState = scaffoldState
@@ -118,7 +114,7 @@ fun WorkoutLogScaffold(
     scaffoldState: ScaffoldState
 ) {
     val state = viewModel.state.value
-    val dialogsState = viewModel.dialogState.value
+    val dialogState = viewModel.dialogState.value
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -145,17 +141,24 @@ fun WorkoutLogScaffold(
         }
     ) {
         EditWorkoutNameDialog(
-            show = dialogsState.showEditWorkoutNameDialog,
+            dialogState = dialogState,
             workout = state.workout,
             onDismiss = viewModel::onEditWorkoutNameDialogDismissed,
             onConfirm = viewModel::onEditWorkoutNameDialogConfirmed
         )
         ReorderExercisesDialog(
-            show = dialogsState.showReorderExerciseDialog,
+            dialogState = dialogState,
             state.exercisesAndSets.map { it.exercise },
             onDismiss = viewModel::onReorderExerciseDialogDismissed,
             onConfirm = viewModel::onReorderExerciseDialogConfirmed
         )
+        EditExerciseDialog(
+            dialogState = dialogState,
+            onDismiss = viewModel::onEditExerciseDialogDismissed,
+            onConfirm = viewModel::onEditExerciseDialogConfirmed,
+            onDelete = viewModel::onEditExerciseDialogDelete
+        )
+
 
         WorkoutLog(
             state.exercisesAndSets,
@@ -212,7 +215,7 @@ fun WorkoutLogCards(
                 elevation = 6.dp
             ) {
                 Column(Modifier.clickable { expanded = !expanded }) {
-                    ExerciseNameRow(exerciseAndSets.exercise, openBottomSheet)
+                    ExerciseNameRow(exerciseAndSets, openBottomSheet)
                     AnimatedVisibility(visible = expanded) {
                         Column {
                             ExerciseHeaderRow()
@@ -233,7 +236,7 @@ fun WorkoutLogCards(
 @ExperimentalMaterialApi
 @Composable
 fun ExerciseNameRow(
-    exercise: Exercise,
+    exerciseAndSets: ExerciseAndExerciseSets,
     openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
 ) {
     Row(
@@ -244,11 +247,11 @@ fun ExerciseNameRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = exercise.exerciseName,
+            text = exerciseAndSets.exercise.exerciseName,
             style = MaterialTheme.typography.h6,
         )
         IconButton(onClick = {
-            openBottomSheet(WorkoutLogBottomSheet.ExerciseBottomSheet(exercise))
+            openBottomSheet(WorkoutLogBottomSheet.ExerciseBottomSheet(exerciseAndSets))
         }) {
             Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Exercise Menu")
         }
@@ -297,8 +300,8 @@ fun ExerciseSetRow(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        val setWeightTextValue = remember(exerciseSet.exerciseId) { mutableStateOf(TextFieldValue(exerciseSet.weight.toString())) }
-        val setRepsTextValue = remember(exerciseSet.exerciseId) { mutableStateOf(TextFieldValue(exerciseSet.reps.toString())) }
+        val setWeightTextValue = remember(exerciseSet.setId) { mutableStateOf(TextFieldValue(exerciseSet.weight.toString())) }
+        val setRepsTextValue = remember(exerciseSet.setId) { mutableStateOf(TextFieldValue(exerciseSet.reps.toString())) }
         val maxWeightCharacters = 3
         val maxRepCharacters = 2
 

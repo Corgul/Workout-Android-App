@@ -15,5 +15,12 @@ data class WorkoutWithExercisesAndSets(
     /**
      * Returns a list of exercises ordered by their position
      */
-    fun getExercisesAndSets(): List<ExerciseAndExerciseSets> = exercisesAndSets.sortedBy { it.exercise.exercisePosition }
+    fun getExercisesAndSets(): List<ExerciseAndExerciseSets> {
+        val sortedList = exercisesAndSets.sortedBy {
+            it.exercise.exercisePosition
+        }.also {
+            exercisesAndSets.onEach { exerciseAndSets -> exerciseAndSets.sets = exerciseAndSets.sets.sortedBy { it.setNumber } }
+        }
+        return sortedList
+    }
 }

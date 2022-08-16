@@ -11,8 +11,11 @@ import com.example.workout_log.domain.use_cases.workout_log.WorkoutBottomSheetUs
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutLogUseCases
 import com.example.workout_log.domain.util.WorkoutAppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -26,7 +29,7 @@ class WorkoutLogViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = mutableStateOf(WorkoutLogState())
     val state: State<WorkoutLogState> = _state
-    private val _dialogState = mutableStateOf(WorkoutLogDialogsState())
+    private val _dialogState = mutableStateOf<WorkoutLogDialogsState>(WorkoutLogDialogsState.UnknownDialogState)
     val dialogState: State<WorkoutLogDialogsState> = _dialogState
 
     private val workoutDate: LocalDate
@@ -168,7 +171,7 @@ class WorkoutLogViewModel @Inject constructor(
 
     //region Dialogs
     fun showReorderExerciseDialog() {
-        _dialogState.value = WorkoutLogDialogsState(true)
+        _dialogState.value = WorkoutLogDialogsState.ReorderExerciseDialogState(true)
     }
 
     fun onReorderExerciseDialogDismissed() {
@@ -187,11 +190,11 @@ class WorkoutLogViewModel @Inject constructor(
     }
 
     private fun dismissReorderExerciseDialog() {
-        _dialogState.value = WorkoutLogDialogsState(false)
+        _dialogState.value = WorkoutLogDialogsState.UnknownDialogState
     }
 
     fun showEditWorkoutNameDialog() {
-        _dialogState.value = WorkoutLogDialogsState(showEditWorkoutNameDialog = true)
+        _dialogState.value = WorkoutLogDialogsState.EditWorkoutNameDialogState(true)
     }
 
     fun onEditWorkoutNameDialogDismissed() {
@@ -206,7 +209,53 @@ class WorkoutLogViewModel @Inject constructor(
     }
 
     private fun dismissEditWorkoutNameDialog() {
-        _dialogState.value = WorkoutLogDialogsState(showEditWorkoutNameDialog = false)
+        _dialogState.value = WorkoutLogDialogsState.UnknownDialogState
+    }
+
+    fun showEditExerciseDialog(exerciseAndSets: ExerciseAndExerciseSets) {
+        _dialogState.value = WorkoutLogDialogsState.EditExerciseDialogState(true, exerciseAndSets)
+    }
+
+    fun onEditExerciseDialogDismissed() {
+        dismissEditExerciseDialog()
+    }
+
+    fun onEditExerciseDialogConfirmed(exerciseSets: List<ExerciseSet>) {
+        viewModelScope.launch {
+            exerciseSets.toMutableList().forEachIndexed { index, exerciseSet -> exerciseSet.setNumber = index + 1 }
+            exerciseBottomSheetUseCases.updateSets(exerciseSets)
+            dismissReorderExerciseDialog()
+        }
+    }
+
+    fun onEditExerciseDialogDelete(exerciseAndExerciseSets: ExerciseAndExerciseSets, setsToDelete: List<ExerciseSet>) {
+        viewModelScope.launch {
+            if (setsToDelete.size == exerciseAndExerciseSets.sets.size) {
+                deleteExercise(exerciseAndExerciseSets.exercise)
+            } else {
+                updateSetsPositionsForDeletedSets(exerciseAndExerciseSets.sets, setsToDelete)
+                exerciseBottomSheetUseCases.deleteSets(setsToDelete)
+            }
+            dismissEditExerciseDialog()
+        }
+    }
+
+    /**
+     * Updates the sets positions in [sets] based on the sets to delete in [setsToDelete]
+     */
+    private suspend fun updateSetsPositionsForDeletedSets(sets: List<ExerciseSet>, setsToDelete: List<ExerciseSet>) {
+        val newSetList = sets.toMutableList()
+        setsToDelete.forEach { exerciseSet ->
+            if (sets.contains(exerciseSet)) {
+                newSetList.remove(exerciseSet)
+            }
+        }
+        newSetList.forEachIndexed { index, exerciseSet -> exerciseSet.setNumber = index + 1 }
+        exerciseBottomSheetUseCases.updateSets(newSetList)
+    }
+
+    private fun dismissEditExerciseDialog() {
+        _dialogState.value = WorkoutLogDialogsState.UnknownDialogState
     }
     //endregion
 }

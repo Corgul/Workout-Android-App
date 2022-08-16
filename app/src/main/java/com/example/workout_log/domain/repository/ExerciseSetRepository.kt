@@ -7,5 +7,9 @@ interface ExerciseSetRepository {
 
     suspend fun updateExerciseSet(exerciseSet: ExerciseSet)
 
+    suspend fun updateExerciseSets(exerciseSets: List<ExerciseSet>)
+
+    suspend fun deleteSets(exerciseSets: List<ExerciseSet>)
+
     suspend fun insertSet(set: ExerciseSet)
 }

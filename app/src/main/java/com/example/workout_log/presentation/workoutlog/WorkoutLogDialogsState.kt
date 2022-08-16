@@ -1,6 +1,10 @@
 package com.example.workout_log.presentation.workoutlog
 
-data class WorkoutLogDialogsState(
-    val showReorderExerciseDialog: Boolean = false,
-    val showEditWorkoutNameDialog: Boolean = false
-)
+import com.example.workout_log.domain.model.ExerciseAndExerciseSets
+
+sealed class WorkoutLogDialogsState(val show: Boolean = false) {
+    class ReorderExerciseDialogState(show: Boolean) : WorkoutLogDialogsState(show)
+    class EditWorkoutNameDialogState(show: Boolean) : WorkoutLogDialogsState(show)
+    class EditExerciseDialogState(show: Boolean, val exerciseAndExerciseSets: ExerciseAndExerciseSets) : WorkoutLogDialogsState(show)
+    object UnknownDialogState : WorkoutLogDialogsState()
+}
