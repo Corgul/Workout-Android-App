@@ -1,5 +1,6 @@
 package com.example.workout_log.presentation.calendar
 
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,17 +15,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.workout_log.R
+import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.Workout
-import com.example.workout_log.domain.util.formatDate
-import com.example.workout_log.presentation.calendar.components.BottomSheet
+import com.example.workout_log.presentation.calendar.components.CalendarBottomSheet
 import com.example.workout_log.presentation.calendar.components.DayContent
-import com.example.workout_log.presentation.util.Screen
+import com.example.workout_log.presentation.calendar.state.rememberCalendarScreenState
 import com.example.workout_log.ui.theme.Shapes
+import io.github.boguszpawlowski.composecalendar.CalendarState
 import io.github.boguszpawlowski.composecalendar.SelectableCalendar
 import io.github.boguszpawlowski.composecalendar.rememberSelectableCalendarState
-import kotlinx.coroutines.launch
+import io.github.boguszpawlowski.composecalendar.selection.DynamicSelectionState
 import java.time.LocalDate
 
 @ExperimentalMaterialApi
@@ -33,46 +34,76 @@ fun CalendarScreen(
     navController: NavController,
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
-    val calendarState = rememberSelectableCalendarState(onSelectionChanged = viewModel::onDateSelected)
     val workoutDays by viewModel.workoutDaysFlow.collectAsState(initial = emptyList())
     val workoutWithExercisesAndSets by viewModel.workoutDetailFlow.collectAsState(initial = null)
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
-    )
-    val isBottomSheetVisible = workoutWithExercisesAndSets != null
+    val workout = workoutWithExercisesAndSets?.workout
+    val exercisesAndSets = workoutWithExercisesAndSets?.getExercisesAndSets()
 
-    BottomSheet(
-        workoutWithExercisesAndSets,
-        scaffoldState,
-        isBottomSheetVisible,
-        onGoToWorkoutClicked = { onGoToWorkoutClicked(navController, workoutWithExercisesAndSets?.workout) }) {
-        Column() {
-            SelectableCalendar(calendarState = calendarState, dayContent = { DayContent(state = it, workoutDays = workoutDays) })
-            if (!isBottomSheetVisible) {
-                AddNewWorkoutButton(navController = navController, scaffoldState, calendarState.selectionState.selection.firstOrNull())
-            }
+    CalendarScreenContent(
+        navController = navController,
+        workoutDays = workoutDays,
+        workout = workout,
+        exercisesAndSets = exercisesAndSets,
+        onDateSelectionChange = viewModel::onDateSelected
+    )
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CalendarScreenContent(
+    navController: NavController,
+    workoutDays: List<LocalDate>,
+    workout: Workout?,
+    exercisesAndSets: List<ExerciseAndExerciseSets>?,
+    onDateSelectionChange: (List<LocalDate>) -> Unit
+) {
+    val calendarScreenState = rememberCalendarScreenState(
+        calendarState = rememberSelectableCalendarState(onSelectionChanged = onDateSelectionChange),
+        bottomSheetScaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)),
+        navController = navController,
+        coroutineScope = rememberCoroutineScope()
+    )
+    calendarScreenState.changeBottomSheetVisibility(workout != null)
+    val isBottomSheetVisible = calendarScreenState.isBottomSheetVisible
+
+    CalendarBottomSheet(
+        scaffoldState = calendarScreenState.bottomSheetScaffoldState,
+        isBottomSheetVisible = isBottomSheetVisible,
+        workout = workout,
+        exercisesAndSets = exercisesAndSets,
+        onGoToWorkoutClicked = calendarScreenState::navigateToWorkoutScreen
+    ) {
+        CalendarContent(
+            calendarState = calendarScreenState.calendarState,
+            workoutDays = workoutDays,
+            shouldShowAddNewWorkoutButton = !isBottomSheetVisible,
+            onAddNewWorkoutClicked = calendarScreenState::addNewWorkoutButtonClicked
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CalendarContent(
+    calendarState: CalendarState<DynamicSelectionState>,
+    workoutDays: List<LocalDate>,
+    shouldShowAddNewWorkoutButton: Boolean,
+    onAddNewWorkoutClicked: (Context) -> Unit
+) {
+    Column() {
+        SelectableCalendar(calendarState = calendarState, dayContent = { DayContent(state = it, workoutDays = workoutDays) })
+        if (shouldShowAddNewWorkoutButton) {
+            AddNewWorkoutButton(onAddNewWorkoutClicked = onAddNewWorkoutClicked)
         }
     }
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun AddNewWorkoutButton(navController: NavController, scaffoldState: BottomSheetScaffoldState, selectedDate: LocalDate?) {
-    val scope = rememberCoroutineScope()
+fun AddNewWorkoutButton(onAddNewWorkoutClicked: (Context) -> Unit) {
     val context = LocalContext.current
     Button(
-        onClick = {
-            if (selectedDate == null) {
-                scope.launch { scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.add_new_workout_button_snackbar)) }
-            } else {
-                scope.launch { scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.add_exercises_for_workout_snackbar, selectedDate.formatDate())) }
-                navController.navigate(Screen.WorkoutLogScreen.route + "?workoutDate=${selectedDate.toEpochDay()}") {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                }
-            }
-        },
+        onClick = { onAddNewWorkoutClicked(context) },
         shape = Shapes.small,
         colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary),
         modifier = Modifier
@@ -80,15 +111,5 @@ fun AddNewWorkoutButton(navController: NavController, scaffoldState: BottomSheet
             .padding(start = 32.dp, end = 32.dp, top = 32.dp)
     ) {
         Text(text = stringResource(id = R.string.add_workout_for_date_button))
-    }
-}
-
-private fun onGoToWorkoutClicked(navController: NavController, workout: Workout?) {
-    workout?.let {
-        navController.navigate(Screen.WorkoutLogScreen.route + "?workoutDate=${it.date.toEpochDay()}") {
-            popUpTo(navController.graph.findStartDestination().id) {
-                saveState = true
-            }
-        }
     }
 }

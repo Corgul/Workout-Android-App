@@ -15,65 +15,92 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.workout_log.R
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
+import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
-import com.example.workout_log.domain.model.WorkoutWithExercisesAndSets
+import com.example.workout_log.presentation.calendar.state.rememberCalendarBottomSheetState
 import com.example.workout_log.presentation.util.extensions.collapsedVisibilityFraction
 import com.example.workout_log.presentation.util.extensions.expandedVisibilityFraction
 import com.example.workout_log.ui.theme.Grey100
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
 
 @ExperimentalMaterialApi
 @Composable
-fun BottomSheet(
-    workoutWithExercisesAndSets: WorkoutWithExercisesAndSets?,
+fun CalendarBottomSheet(
+    scope: CoroutineScope = rememberCoroutineScope(),
     scaffoldState: BottomSheetScaffoldState,
     isBottomSheetVisible: Boolean = false,
-    onGoToWorkoutClicked: () -> Unit,
+    workout: Workout?,
+    exercisesAndSets: List<ExerciseAndExerciseSets>?,
+    onGoToWorkoutClicked: (Workout?) -> Unit,
     content: @Composable () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     // Round the corner of the bottom sheet based on swipe progress
-    val radius = (30 * scaffoldState.collapsedVisibilityFraction).dp
-    val height = if (isBottomSheetVisible) 160.dp else 0.dp
-    val sheetToggle: () -> Unit = {
-        scope.launch {
-            if (scaffoldState.bottomSheetState.isCollapsed) {
-                scaffoldState.bottomSheetState.expand()
-            } else {
-                scaffoldState.bottomSheetState.collapse()
-            }
-        }
-    }
+    val calendarBottomSheetState = rememberCalendarBottomSheetState(bottomSheetScaffoldState = scaffoldState, coroutineScope = scope)
+    val radius = (30 * calendarBottomSheetState.bottomSheetScaffoldState.collapsedVisibilityFraction).dp
 
-    BottomSheetScaffold(
-        modifier = Modifier.fillMaxWidth(),
-        scaffoldState = scaffoldState,
+    CalendarBottomSheetScaffold(
         sheetShape = RoundedCornerShape(topStart = radius, topEnd = radius),
-        sheetPeekHeight = height,
+        sheetPeekHeight = calendarBottomSheetState.getHeight(isBottomSheetVisible),
+        scaffoldState = calendarBottomSheetState.bottomSheetScaffoldState,
         sheetContent = {
             BottomSheetContent {
+                if (workout == null || exercisesAndSets == null) {
+                    return@BottomSheetContent
+                }
                 BottomSheetExpanded {
                     BottomSheetExpandedContent(
-                        workoutWithExercisesAndSets,
-                        collapsedVisibilityFraction = scaffoldState.expandedVisibilityFraction,
-                        onGoToWorkoutClicked
+                        header = {
+                            WorkoutHeader(
+                                workout = workout,
+                                collapsedVisibilityFraction = calendarBottomSheetState.bottomSheetScaffoldState.expandedVisibilityFraction
+                            )
+                        },
+                        cards = {
+                            ExerciseCards(exercisesAndSets = exercisesAndSets) {
+                                GoToWorkoutButton(onClicked = { onGoToWorkoutClicked(workout) }, modifier = Modifier.padding(top = 16.dp))
+                            }
+                        }
                     )
                 }
                 BottomSheetCollapsed(
-                    isCollapsed = scaffoldState.bottomSheetState.isCollapsed,
-                    currentFraction = scaffoldState.collapsedVisibilityFraction,
-                    onSheetClick = sheetToggle
+                    isCollapsed = calendarBottomSheetState.bottomSheetScaffoldState.bottomSheetState.isCollapsed,
+                    currentFraction = calendarBottomSheetState.bottomSheetScaffoldState.collapsedVisibilityFraction,
+                    onSheetClick = calendarBottomSheetState::toggleSheet
                 ) {
-                    BottomSheetCollapsedContent(workout = workoutWithExercisesAndSets?.workout, onGoToWorkoutClicked)
+                    BottomSheetCollapsedContent(workout = workout) {
+                        GoToWorkoutButton(onClicked = { onGoToWorkoutClicked(workout) })
+                    }
                 }
             }
-        },
+        }
+    ) {
+        content()
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CalendarBottomSheetScaffold(
+    sheetShape: Shape,
+    sheetPeekHeight: Dp,
+    scaffoldState: BottomSheetScaffoldState,
+    sheetContent: @Composable ColumnScope.() -> Unit,
+    content: @Composable () -> Unit
+) {
+    BottomSheetScaffold(
+        modifier = Modifier.fillMaxWidth(),
+        scaffoldState = scaffoldState,
+        sheetShape = sheetShape,
+        sheetPeekHeight = sheetPeekHeight,
+        sheetContent = sheetContent,
     ) {
         content()
     }
@@ -133,11 +160,11 @@ fun BottomSheetCollapsed(
 @Composable
 fun BottomSheetCollapsedContent(
     workout: Workout?,
-    onGoToWorkoutClicked: () -> Unit
+    button: @Composable () -> Unit
 ) {
     Text(workout?.workoutName ?: stringResource(id = R.string.default_workout_name))
 
-    GoToWorkoutButton(onGoToWorkoutClicked)
+    button()
 }
 
 @Composable
@@ -155,17 +182,11 @@ fun BottomSheetExpanded(
 
 @Composable
 fun BottomSheetExpandedContent(
-    workoutWithExercisesAndSets: WorkoutWithExercisesAndSets?,
-    collapsedVisibilityFraction: Float,
-    onGoToWorkoutClicked: () -> Unit
+    header: @Composable () -> Unit,
+    cards: @Composable () -> Unit
 ) {
-    if (workoutWithExercisesAndSets == null) {
-        return
-    }
-
-    WorkoutHeader(workoutWithExercisesAndSets.workout, collapsedVisibilityFraction)
-
-    ExerciseCards(workoutWithExercisesAndSets.getExercisesAndSets(), onGoToWorkoutClicked = onGoToWorkoutClicked)
+    header()
+    cards()
 }
 
 @Composable
@@ -180,16 +201,13 @@ fun WorkoutHeader(workout: Workout, collapsedVisibilityFraction: Float) {
 }
 
 @Composable
-fun ExerciseCards(exercisesAndSets: List<ExerciseAndExerciseSets>, onGoToWorkoutClicked: () -> Unit) {
+fun ExerciseCards(exercisesAndSets: List<ExerciseAndExerciseSets>, button: @Composable () -> Unit) {
     LazyColumn(modifier = Modifier.padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        items(exercisesAndSets) { exerciseAndSets ->
+        items(exercisesAndSets, key = { exerciseAndSets -> exerciseAndSets.exercise.exerciseId }) { exerciseAndSets ->
             ExerciseCard(exerciseAndSets = exerciseAndSets)
         }
         item {
-            GoToWorkoutButton(
-                onGoToWorkoutClicked, modifier = Modifier
-                    .padding(top = 16.dp)
-            )
+            button()
         }
     }
 }
@@ -209,42 +227,80 @@ fun ExerciseCard(exerciseAndSets: ExerciseAndExerciseSets) {
             .clickable { expanded = !expanded }
             .padding(16.dp)) {
             Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        exerciseAndSets.exercise.exerciseName,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.h6
-                    )
-                    IconButton(onClick = { expanded = !expanded }) {
-                        if (expanded) {
-                            Icon(imageVector = Icons.Filled.ExpandLess, contentDescription = stringResource(id = R.string.calendar_bottom_sheet_collapse_content_description))
-                        } else {
-                            Icon(imageVector = Icons.Filled.ExpandMore, contentDescription = stringResource(id = R.string.calendar_bottom_sheet_expand_content_description))
-                        }
-                    }
+                ExerciseCardContent(exerciseName = exerciseAndSets.exercise.exerciseName) {
+                    ExerciseCardExpandCollapseIconButton(isExpanded = expanded, onExpandCollapseButtonClicked = { expanded = !expanded })
                 }
                 AnimatedVisibility(visible = expanded) {
-                    Column {
-                        exerciseAndSets.sets.forEach { exerciseSet ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(exerciseSet.setNumber.toString(), style = MaterialTheme.typography.h6)
-                                Text(text = stringResource(id = R.string.calendar_exercise_card_lbs, exerciseSet.weight), style = MaterialTheme.typography.h6)
-                                Text(text = stringResource(id = R.string.calendar_exercise_card_reps, exerciseSet.reps), style = MaterialTheme.typography.h6)
-                            }
-                        }
+                    ExerciseCardExpandedContent(sets = exerciseAndSets.sets) { exerciseSet ->
+                        ExerciseCardExpandedContentRow(exerciseSet = exerciseSet)
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ExerciseCardContent(exerciseName: String, iconButton: @Composable () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = exerciseName,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.h6
+        )
+        iconButton()
+    }
+}
+
+@Composable
+fun ExerciseCardExpandCollapseIconButton(isExpanded: Boolean, onExpandCollapseButtonClicked: () -> Unit) {
+    IconButton(onClick = onExpandCollapseButtonClicked) {
+        if (isExpanded) {
+            Icon(
+                imageVector = Icons.Filled.ExpandLess,
+                contentDescription = stringResource(id = R.string.calendar_bottom_sheet_collapse_content_description)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Filled.ExpandMore,
+                contentDescription = stringResource(id = R.string.calendar_bottom_sheet_expand_content_description)
+            )
+        }
+    }
+}
+
+@Composable
+fun ExerciseCardExpandedContent(sets: List<ExerciseSet>, content: @Composable (ExerciseSet) -> Unit) {
+    Column {
+        sets.forEach { exerciseSet ->
+            key(exerciseSet.setId) {
+                content(exerciseSet)
+            }
+        }
+    }
+}
+
+@Composable
+fun ExerciseCardExpandedContentRow(exerciseSet: ExerciseSet) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(exerciseSet.setNumber.toString(), style = MaterialTheme.typography.h6)
+        Text(
+            text = stringResource(id = R.string.calendar_exercise_card_lbs, exerciseSet.weight),
+            style = MaterialTheme.typography.h6
+        )
+        Text(
+            text = stringResource(id = R.string.calendar_exercise_card_reps, exerciseSet.reps),
+            style = MaterialTheme.typography.h6
+        )
     }
 }
 
