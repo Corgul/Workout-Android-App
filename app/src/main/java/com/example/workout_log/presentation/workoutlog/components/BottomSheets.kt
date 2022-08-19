@@ -22,6 +22,7 @@ import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.presentation.workoutlog.WorkoutLogViewModel
+import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialogState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -32,13 +33,14 @@ fun ExerciseBottomSheet(
     exerciseAndExerciseSets: ExerciseAndExerciseSets,
     coroutineScope: CoroutineScope,
     bottomSheetState: ModalBottomSheetState,
-    scaffoldState: ScaffoldState
+    scaffoldState: ScaffoldState,
+    workoutLogDialogState: WorkoutLogDialogState
 ) {
     Column() {
         val context = LocalContext.current
         BottomSheetRow(rowText = stringResource(id = R.string.edit_exercise), rowIcon = Icons.Default.Edit) {
             coroutineScope.launch { bottomSheetState.hide() }
-            viewModel.showEditExerciseDialog(exerciseAndExerciseSets)
+            workoutLogDialogState.showEditExerciseDialog(exerciseAndExerciseSets)
         }
         BottomSheetRow(rowText = stringResource(id = R.string.delete_exercise), Icons.Default.Delete) {
             coroutineScope.launch {
@@ -62,14 +64,15 @@ fun WorkoutBottomSheet(
     exercises: List<Exercise>,
     coroutineScope: CoroutineScope,
     bottomSheetState: ModalBottomSheetState,
-    scaffoldState: ScaffoldState
+    scaffoldState: ScaffoldState,
+    workoutLogDialogState: WorkoutLogDialogState
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         val context = LocalContext.current
         BottomSheetRow(rowText = stringResource(id = R.string.edit_workout_name), rowIcon = Icons.Default.Edit) {
             coroutineScope.launch { bottomSheetState.hide() }
 
-            viewModel.showEditWorkoutNameDialog()
+            workoutLogDialogState.showEditWorkoutNameDialog()
         }
         
         BottomSheetRow(rowText = stringResource(id = R.string.reorder_exercises), rowIcon = Icons.Default.DynamicFeed) {
@@ -78,7 +81,7 @@ fun WorkoutBottomSheet(
                 coroutineScope.launch { scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.reorder_exercise_snackbar)) }
                 return@BottomSheetRow
             }
-            viewModel.showReorderExerciseDialog()
+            workoutLogDialogState.showReorderExerciseDialog()
         }
         
         BottomSheetRow(rowText = stringResource(id = R.string.delete_workout), Icons.Default.Delete) {

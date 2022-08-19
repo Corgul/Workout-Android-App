@@ -35,6 +35,9 @@ import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.presentation.util.WorkoutNameHelper
 import com.example.workout_log.presentation.util.extensions.onFocusSelectAll
 import com.example.workout_log.presentation.workoutlog.components.*
+import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialog
+import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialogState
+import com.example.workout_log.presentation.workoutlog.state.rememberWorkoutLogDialogState
 import com.example.workout_log.ui.theme.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -50,14 +53,17 @@ fun WorkoutLogScreen(
     ModalBottomSheet(navController, workoutDate, viewModel)
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @ExperimentalMaterialApi
 @Composable
 fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel: WorkoutLogViewModel) {
     val modalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
+    val workoutLogDialogState = rememberWorkoutLogDialogState()
     var currentBottomSheet by remember { mutableStateOf<WorkoutLogBottomSheet>(WorkoutLogBottomSheet.WorkoutBottomSheet) }
-    val state = viewModel.state.value
+    val workout = viewModel.state.value.workout
+    val exercisesAndSets = viewModel.state.value.exercisesAndSets
 
     val openBottomSheet: (bottomSheet: WorkoutLogBottomSheet) -> Unit = {
         currentBottomSheet = it
@@ -73,16 +79,18 @@ fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel:
                     exerciseAndExerciseSets = (currentBottomSheet as WorkoutLogBottomSheet.ExerciseBottomSheet).exerciseAndExerciseSets,
                     coroutineScope = coroutineScope,
                     bottomSheetState = modalBottomSheetState,
-                    scaffoldState = scaffoldState
+                    scaffoldState = scaffoldState,
+                    workoutLogDialogState = workoutLogDialogState
                 )
             } else {
                 WorkoutBottomSheet(
                     viewModel = viewModel,
-                    workout = state.workout,
-                    state.exercisesAndSets.map { it.exercise },
+                    workout = workout,
+                    exercisesAndSets.map { it.exercise },
                     coroutineScope = coroutineScope,
                     bottomSheetState = modalBottomSheetState,
-                    scaffoldState = scaffoldState
+                    scaffoldState = scaffoldState,
+                    workoutLogDialogState = workoutLogDialogState
                 )
             }
         }
@@ -92,7 +100,10 @@ fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel:
             viewModel = viewModel,
             workoutDate = workoutDate,
             openBottomSheet = openBottomSheet,
-            scaffoldState = scaffoldState
+            scaffoldState = scaffoldState,
+            workoutLogDialogsState = workoutLogDialogState,
+            workout = workout,
+            exercisesAndSets = exercisesAndSets
         )
     }
 }
@@ -105,15 +116,15 @@ fun WorkoutLogScaffold(
     viewModel: WorkoutLogViewModel,
     workoutDate: Long,
     openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit,
-    scaffoldState: ScaffoldState
+    scaffoldState: ScaffoldState,
+    workoutLogDialogsState: WorkoutLogDialogState,
+    workout: Workout?,
+    exercisesAndSets: List<ExerciseAndExerciseSets>
 ) {
-    val state = viewModel.state.value
-    val dialogState = viewModel.dialogState.value
-
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            WorkoutLogTopBar(state.workout, openBottomSheet, workoutDate)
+            WorkoutLogTopBar(workout, openBottomSheet, workoutDate)
         },
         snackbarHost = {
             SnackbarHost(it) { data ->
@@ -134,28 +145,33 @@ fun WorkoutLogScaffold(
             }
         }
     ) {
-        EditWorkoutNameDialog(
-            dialogState = dialogState,
-            workout = state.workout,
-            onDismiss = viewModel::onEditWorkoutNameDialogDismissed,
-            onConfirm = viewModel::onEditWorkoutNameDialogConfirmed
-        )
-        ReorderExercisesDialog(
-            dialogState = dialogState,
-            state.exercisesAndSets.map { it.exercise },
-            onDismiss = viewModel::onReorderExerciseDialogDismissed,
-            onConfirm = viewModel::onReorderExerciseDialogConfirmed
-        )
-        EditExerciseDialog(
-            dialogState = dialogState,
-            onDismiss = viewModel::onEditExerciseDialogDismissed,
-            onConfirm = viewModel::onEditExerciseDialogConfirmed,
-            onDelete = viewModel::onEditExerciseDialogDelete
-        )
-
+        when (workoutLogDialogsState.currentDialog.value) {
+            is WorkoutLogDialog.ReorderExerciseDialog -> {
+                ReorderExercisesDialog(
+                    exercisesAndSets.map { it.exercise },
+                    onDismiss = workoutLogDialogsState::dismissDialog,
+                    onConfirm = viewModel::onReorderExerciseDialogConfirmed
+                )
+            }
+            is WorkoutLogDialog.EditWorkoutNameDialog -> {
+                EditWorkoutNameDialog(
+                    workout = workout,
+                    onDismiss = workoutLogDialogsState::dismissDialog,
+                    onConfirm = viewModel::onEditWorkoutNameDialogConfirmed
+                )
+            }
+            is WorkoutLogDialog.EditExerciseDialog -> {
+                EditExerciseDialog(
+                    exerciseAndSets = (workoutLogDialogsState.currentDialog.value as WorkoutLogDialog.EditExerciseDialog).exerciseAndExerciseSets,
+                    onDismiss = workoutLogDialogsState::dismissDialog,
+                    onConfirm = viewModel::onEditExerciseDialogConfirmed,
+                    onDelete = viewModel::onEditExerciseDialogDelete
+                )
+            }
+        }
 
         WorkoutLog(
-            state.exercisesAndSets,
+            exercisesAndSets,
             viewModel::onAddSetButtonClicked,
             viewModel::onWeightChanged,
             viewModel::onRepsChanged,

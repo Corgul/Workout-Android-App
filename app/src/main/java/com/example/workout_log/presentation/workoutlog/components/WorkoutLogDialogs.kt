@@ -23,7 +23,6 @@ import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.util.WorkoutAppLogger
-import com.example.workout_log.presentation.workoutlog.WorkoutLogDialogsState
 import com.example.workout_log.presentation.workoutlog.WorkoutLogTextField
 import com.example.workout_log.presentation.workoutlog.state.rememberEditExerciseDialogState
 import com.example.workout_log.presentation.workoutlog.workoutLogTextFieldColors
@@ -33,12 +32,11 @@ import org.burnoutcrew.reorderable.ItemPosition
 
 @Composable
 fun EditWorkoutNameDialog(
-    dialogState: WorkoutLogDialogsState,
     workout: Workout?,
     onDismiss: () -> Unit,
     onConfirm: (newName: String, workout: Workout) -> Unit
 ) {
-    if (dialogState is WorkoutLogDialogsState.EditWorkoutNameDialogState && dialogState.show && workout != null) {
+    if (workout != null) {
         val workoutNameTextValue = remember { mutableStateOf(TextFieldValue(workout.workoutName)) }
         val maxWorkoutNameCharacters = 32
 
@@ -83,6 +81,7 @@ fun EditWorkoutNameDialog(
                         Spacer(modifier = Modifier.width(4.dp))
                         TextButton(onClick = {
                             onConfirm(workoutNameTextValue.value.text, workout)
+                            onDismiss()
                         }) {
                             Text(text = stringResource(id = R.string.ok), style = LocalTextStyle.current.copy(color = Color.White))
                         }
@@ -95,127 +94,127 @@ fun EditWorkoutNameDialog(
 
 @Composable
 fun ReorderExercisesDialog(
-    dialogState: WorkoutLogDialogsState,
     exercises: List<Exercise>,
     onDismiss: () -> Unit,
     onConfirm: (exercises: List<Exercise>) -> Unit,
 ) {
-    if (dialogState is WorkoutLogDialogsState.ReorderExerciseDialogState && dialogState.show) {
-        var exerciseList by remember {
-            mutableStateOf(exercises)
+    var exerciseList by remember {
+        mutableStateOf(exercises)
+    }
+    val onMove: (ItemPosition, ItemPosition) -> Unit = { from, to ->
+        exerciseList = exerciseList.toMutableList().apply {
+            add(to.index, removeAt(from.index))
         }
-        val onMove: (ItemPosition, ItemPosition) -> Unit = { from, to ->
-            exerciseList = exerciseList.toMutableList().apply {
-                add(to.index, removeAt(from.index))
-            }
-        }
-        Dialog(onDismissRequest = onDismiss) {
+    }
+    Dialog(onDismissRequest = onDismiss) {
 
-            Card(
-                elevation = 8.dp,
-                shape = RoundedCornerShape(12.dp)
-            ) {
+        Card(
+            elevation = 8.dp,
+            shape = RoundedCornerShape(12.dp)
+        ) {
 
-                Column(modifier = Modifier.background(Grey500)) {
+            Column(modifier = Modifier.background(Grey500)) {
 
-                    Text(
-                        text = stringResource(id = R.string.reorder_exercises),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(id = R.string.reorder_exercises),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    ReorderableExerciseList(exercises = exerciseList, onMove)
+                ReorderableExerciseList(exercises = exerciseList, onMove)
 
-                    // Buttons
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                // Buttons
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
 
-                        TextButton(onClick = onDismiss) {
-                            Text(text = stringResource(id = R.string.cancel), style = LocalTextStyle.current.copy(color = Color.White))
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        TextButton(onClick = {
-                            WorkoutAppLogger.d("new exercise list: $exerciseList")
-                            onConfirm(exerciseList)
-                        }) {
-                            Text(text = stringResource(id = R.string.ok), style = LocalTextStyle.current.copy(color = Color.White))
-                        }
+                    TextButton(onClick = onDismiss) {
+                        Text(text = stringResource(id = R.string.cancel), style = LocalTextStyle.current.copy(color = Color.White))
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    TextButton(onClick = {
+                        WorkoutAppLogger.d("new exercise list: $exerciseList")
+                        onConfirm(exerciseList)
+                        onDismiss()
+                    }) {
+                        Text(text = stringResource(id = R.string.ok), style = LocalTextStyle.current.copy(color = Color.White))
                     }
                 }
             }
         }
-
     }
 }
 
 @Composable
 fun EditExerciseDialog(
-    dialogState: WorkoutLogDialogsState,
+    exerciseAndSets: ExerciseAndExerciseSets,
     onDismiss: () -> Unit,
     onConfirm: (exerciseSets: List<ExerciseSet>) -> Unit,
     onDelete: (exerciseAndExerciseSets: ExerciseAndExerciseSets, exerciseSets: List<ExerciseSet>) -> Unit
 ) {
-    if (dialogState is WorkoutLogDialogsState.EditExerciseDialogState && dialogState.show) {
-        val editExerciseDialogState = rememberEditExerciseDialogState(sets = dialogState.exerciseAndExerciseSets.sets)
+    val editExerciseDialogState = rememberEditExerciseDialogState(sets =exerciseAndSets.sets)
 
-        Dialog(onDismissRequest = onDismiss) {
-            Card(elevation = 8.dp, shape = RoundedCornerShape(12.dp)) {
-                Column(modifier = Modifier.background(Grey500)) {
-                    Text(
-                        text = stringResource(id = R.string.edit_exercise_dialog_header),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp, end = 16.dp)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+    Dialog(onDismissRequest = onDismiss) {
+        Card(elevation = 8.dp, shape = RoundedCornerShape(12.dp)) {
+            Column(modifier = Modifier.background(Grey500)) {
+                Text(
+                    text = stringResource(id = R.string.edit_exercise_dialog_header),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp, end = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 86.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)
-                    ) {
-                        Text(text = stringResource(id = R.string.sets))
-                        Text(text = stringResource(id = R.string.lbs))
-                        Text(text = stringResource(id = R.string.reps))
-                    }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 86.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)
+                ) {
+                    Text(text = stringResource(id = R.string.sets))
+                    Text(text = stringResource(id = R.string.lbs))
+                    Text(text = stringResource(id = R.string.reps))
+                }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    ReorderableSetList(
-                        sets = editExerciseDialogState.reorderableSetList,
-                        onChecked = editExerciseDialogState::onSetChecked,
-                        onMove = editExerciseDialogState::onSetsMoved
-                    )
+                ReorderableSetList(
+                    sets = editExerciseDialogState.reorderableSetList,
+                    onChecked = editExerciseDialogState::onSetChecked,
+                    onMove = editExerciseDialogState::onSetsMoved
+                )
 
-                    // Buttons
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        if (editExerciseDialogState.showDeleteButton) {
-                            IconButton(onClick = {
-                                onDelete(dialogState.exerciseAndExerciseSets, editExerciseDialogState.checkedSets)
-                            }) {
-                                Icon(imageVector = Icons.Default.Delete, contentDescription = stringResource(id = R.string.delete_sets_content_description))
-                            }
-                            Text(
-                                text = "(${editExerciseDialogState.checkedSets.size})",
-                                style = LocalTextStyle.current.copy(color = Color.White)
+                // Buttons
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    if (editExerciseDialogState.showDeleteButton) {
+                        IconButton(onClick = {
+                            onDelete(exerciseAndSets, editExerciseDialogState.checkedSets)
+                            onDismiss()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(id = R.string.delete_sets_content_description)
                             )
                         }
+                        Text(
+                            text = "(${editExerciseDialogState.checkedSets.size})",
+                            style = LocalTextStyle.current.copy(color = Color.White)
+                        )
+                    }
 
-                        Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f))
 
-                        TextButton(onClick = onDismiss) {
-                            Text(text = stringResource(id = R.string.cancel), style = LocalTextStyle.current.copy(color = Color.White))
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        TextButton(onClick = {
-                            onConfirm(editExerciseDialogState.reorderableSetList)
-                        }) {
-                            Text(text = stringResource(id = R.string.ok), style = LocalTextStyle.current.copy(color = Color.White))
-                        }
+                    TextButton(onClick = onDismiss) {
+                        Text(text = stringResource(id = R.string.cancel), style = LocalTextStyle.current.copy(color = Color.White))
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    TextButton(onClick = {
+                        onConfirm(editExerciseDialogState.reorderableSetList)
+                        onDismiss()
+                    }) {
+                        Text(text = stringResource(id = R.string.ok), style = LocalTextStyle.current.copy(color = Color.White))
                     }
                 }
             }

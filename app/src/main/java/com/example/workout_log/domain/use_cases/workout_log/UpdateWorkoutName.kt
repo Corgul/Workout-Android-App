@@ -8,7 +8,8 @@ class UpdateWorkoutName @Inject constructor(
     private val repository: WorkoutRepository
 ) {
     suspend operator fun invoke(workout: Workout, newWorkoutName: String) {
-        workout.workoutName = newWorkoutName
-        repository.updateWorkout(workout)
+        val newWorkout = workout.copy(workoutName = newWorkoutName)
+        newWorkout.workoutId = workout.workoutId
+        repository.updateWorkout(newWorkout)
     }
 }

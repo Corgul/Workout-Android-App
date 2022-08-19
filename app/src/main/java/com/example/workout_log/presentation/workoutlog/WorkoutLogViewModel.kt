@@ -29,8 +29,6 @@ class WorkoutLogViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = mutableStateOf(WorkoutLogState())
     val state: State<WorkoutLogState> = _state
-    private val _dialogState = mutableStateOf<WorkoutLogDialogsState>(WorkoutLogDialogsState.UnknownDialogState)
-    val dialogState: State<WorkoutLogDialogsState> = _dialogState
 
     private val workoutDate: LocalDate
     private var cachedWorkoutLogState: WorkoutLogState? = null
@@ -55,10 +53,9 @@ class WorkoutLogViewModel @Inject constructor(
                 return@onEach
             }
             WorkoutAppLogger.d("Got new exercises and sets")
-            _state.value = state.value.copy(
-                exercisesAndSets = workoutWithExercisesAndSets.getExercisesAndSets(),
-                workout = workoutWithExercisesAndSets.workout
-            )
+            WorkoutAppLogger.d("${_state.value.workout?.workoutName}")
+            _state.value = WorkoutLogState(workoutWithExercisesAndSets.getExercisesAndSets(), workoutWithExercisesAndSets.workout)
+            WorkoutAppLogger.d("${_state.value.workout?.workoutName}")
         }.launchIn(viewModelScope)
     }
 
@@ -169,15 +166,6 @@ class WorkoutLogViewModel @Inject constructor(
         logUseCases.updateExercises(exercises)
     }
 
-    //region Dialogs
-    fun showReorderExerciseDialog() {
-        _dialogState.value = WorkoutLogDialogsState.ReorderExerciseDialogState(true)
-    }
-
-    fun onReorderExerciseDialogDismissed() {
-        dismissReorderExerciseDialog()
-    }
-
     /**
      * The list of exercises will need their positions rearranged
      */
@@ -185,46 +173,19 @@ class WorkoutLogViewModel @Inject constructor(
         viewModelScope.launch {
             exercises.toMutableList().forEachIndexed { index, exercise -> exercise.exercisePosition = index + 1 }
             logUseCases.updateExercises(exercises)
-            dismissReorderExerciseDialog()
         }
-    }
-
-    private fun dismissReorderExerciseDialog() {
-        _dialogState.value = WorkoutLogDialogsState.UnknownDialogState
-    }
-
-    fun showEditWorkoutNameDialog() {
-        _dialogState.value = WorkoutLogDialogsState.EditWorkoutNameDialogState(true)
-    }
-
-    fun onEditWorkoutNameDialogDismissed() {
-        dismissEditWorkoutNameDialog()
     }
 
     fun onEditWorkoutNameDialogConfirmed(newWorkoutName: String, workout: Workout) {
         viewModelScope.launch {
             logUseCases.updateWorkoutName(workout, newWorkoutName)
-            dismissEditWorkoutNameDialog()
         }
-    }
-
-    private fun dismissEditWorkoutNameDialog() {
-        _dialogState.value = WorkoutLogDialogsState.UnknownDialogState
-    }
-
-    fun showEditExerciseDialog(exerciseAndSets: ExerciseAndExerciseSets) {
-        _dialogState.value = WorkoutLogDialogsState.EditExerciseDialogState(true, exerciseAndSets)
-    }
-
-    fun onEditExerciseDialogDismissed() {
-        dismissEditExerciseDialog()
     }
 
     fun onEditExerciseDialogConfirmed(exerciseSets: List<ExerciseSet>) {
         viewModelScope.launch {
             exerciseSets.toMutableList().forEachIndexed { index, exerciseSet -> exerciseSet.setNumber = index + 1 }
             exerciseBottomSheetUseCases.updateSets(exerciseSets)
-            dismissReorderExerciseDialog()
         }
     }
 
@@ -236,7 +197,6 @@ class WorkoutLogViewModel @Inject constructor(
                 updateSetsPositionsForDeletedSets(exerciseAndExerciseSets.sets, setsToDelete)
                 exerciseBottomSheetUseCases.deleteSets(setsToDelete)
             }
-            dismissEditExerciseDialog()
         }
     }
 
@@ -252,10 +212,6 @@ class WorkoutLogViewModel @Inject constructor(
         }
         newSetList.forEachIndexed { index, exerciseSet -> exerciseSet.setNumber = index + 1 }
         exerciseBottomSheetUseCases.updateSets(newSetList)
-    }
-
-    private fun dismissEditExerciseDialog() {
-        _dialogState.value = WorkoutLogDialogsState.UnknownDialogState
     }
     //endregion
 }
