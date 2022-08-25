@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DynamicFeed
@@ -14,44 +16,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.workout_log.R
 import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.Workout
-import com.example.workout_log.presentation.workoutlog.WorkoutLogViewModel
-import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialogState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @ExperimentalMaterialApi
 @Composable
 fun ExerciseBottomSheet(
-    viewModel: WorkoutLogViewModel,
     exerciseAndExerciseSets: ExerciseAndExerciseSets,
-    coroutineScope: CoroutineScope,
-    bottomSheetState: ModalBottomSheetState,
-    scaffoldState: ScaffoldState,
-    workoutLogDialogState: WorkoutLogDialogState
+    hideBottomSheet: () -> Unit,
+    showEditExerciseDialog: (ExerciseAndExerciseSets) -> Unit,
+    deleteExerciseClicked: (Exercise) -> Unit
 ) {
     Column() {
-        val context = LocalContext.current
         BottomSheetRow(rowText = stringResource(id = R.string.edit_exercise), rowIcon = Icons.Default.Edit) {
-            coroutineScope.launch { bottomSheetState.hide() }
-            workoutLogDialogState.showEditExerciseDialog(exerciseAndExerciseSets)
+            hideBottomSheet()
+            showEditExerciseDialog(exerciseAndExerciseSets)
         }
         BottomSheetRow(rowText = stringResource(id = R.string.delete_exercise), Icons.Default.Delete) {
-            coroutineScope.launch {
-                bottomSheetState.hide()
-                val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.deleted_exercise), actionLabel = context.resources.getString(R.string.undo))
-                when (snackbarResult) {
-                    SnackbarResult.Dismissed -> viewModel.deleteExerciseSnackbarDismissed(exerciseAndExerciseSets.exercise)
-                    SnackbarResult.ActionPerformed -> viewModel.deleteExerciseSnackbarUndoClicked()
-                }
-            }
-            viewModel.deleteExerciseClicked(exerciseAndExerciseSets.exercise)
+            hideBottomSheet()
+            deleteExerciseClicked(exerciseAndExerciseSets.exercise)
         }
     }
 }
@@ -59,41 +46,31 @@ fun ExerciseBottomSheet(
 @ExperimentalMaterialApi
 @Composable
 fun WorkoutBottomSheet(
-    viewModel: WorkoutLogViewModel,
     workout: Workout?,
     exercises: List<Exercise>,
-    coroutineScope: CoroutineScope,
-    bottomSheetState: ModalBottomSheetState,
-    scaffoldState: ScaffoldState,
-    workoutLogDialogState: WorkoutLogDialogState
+    hideBottomSheet: () -> Unit,
+    showEditWorkoutNameDialog: () -> Unit,
+    showReorderExerciseDialog: () -> Unit,
+    showReorderExerciseSnackbar: () -> Unit,
+    deleteWorkoutClicked: (Workout?) -> Unit
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        val context = LocalContext.current
         BottomSheetRow(rowText = stringResource(id = R.string.edit_workout_name), rowIcon = Icons.Default.Edit) {
-            coroutineScope.launch { bottomSheetState.hide() }
-
-            workoutLogDialogState.showEditWorkoutNameDialog()
+            hideBottomSheet()
+            showEditWorkoutNameDialog()
         }
         
         BottomSheetRow(rowText = stringResource(id = R.string.reorder_exercises), rowIcon = Icons.Default.DynamicFeed) {
-            coroutineScope.launch { bottomSheetState.hide() }
+            hideBottomSheet()
             if (exercises.size <= 1) {
-                coroutineScope.launch { scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.reorder_exercise_snackbar)) }
-                return@BottomSheetRow
+                showReorderExerciseSnackbar()
             }
-            workoutLogDialogState.showReorderExerciseDialog()
+            showReorderExerciseDialog()
         }
         
         BottomSheetRow(rowText = stringResource(id = R.string.delete_workout), Icons.Default.Delete) {
-            coroutineScope.launch {
-                bottomSheetState.hide()
-                val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(message = context.resources.getString(R.string.deleted_workout), actionLabel = context.resources.getString(R.string.undo))
-                when (snackbarResult) {
-                    SnackbarResult.Dismissed -> viewModel.deleteWorkoutSnackbarDismissed()
-                    SnackbarResult.ActionPerformed -> viewModel.deleteWorkoutSnackbarUndoClicked()
-                }
-            }
-            viewModel.deleteWorkoutClicked(workout)
+            hideBottomSheet()
+            deleteWorkoutClicked(workout)
         }
     }
 }

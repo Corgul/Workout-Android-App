@@ -12,30 +12,29 @@ sealed class WorkoutLogDialog {
     object NoDialog : WorkoutLogDialog()
 }
 
-class WorkoutLogDialogState {
-    val currentDialog: State<WorkoutLogDialog>
-        get() = _currentDialog
-    var _currentDialog = mutableStateOf<WorkoutLogDialog>(WorkoutLogDialog.NoDialog)
+class WorkoutLogDialogState(listener: WorkoutLogDialogListener) : WorkoutDialogVisibilityModifier, WorkoutLogDialogListener by listener {
+    var currentDialog by mutableStateOf<WorkoutLogDialog>(WorkoutLogDialog.NoDialog)
+        private set
 
-    fun showEditExerciseDialog(exerciseAndSets: ExerciseAndExerciseSets) {
-        _currentDialog.value = WorkoutLogDialog.EditExerciseDialog(exerciseAndSets)
+    override fun showEditExerciseDialog(exerciseAndSets: ExerciseAndExerciseSets) {
+        currentDialog = WorkoutLogDialog.EditExerciseDialog(exerciseAndSets)
     }
 
-    fun showReorderExerciseDialog() {
-        _currentDialog.value = WorkoutLogDialog.ReorderExerciseDialog
+    override fun showReorderExerciseDialog() {
+        currentDialog = WorkoutLogDialog.ReorderExerciseDialog
     }
 
-    fun showEditWorkoutNameDialog() {
-        _currentDialog.value = WorkoutLogDialog.EditWorkoutNameDialog
+    override fun showEditWorkoutNameDialog() {
+        currentDialog = WorkoutLogDialog.EditWorkoutNameDialog
     }
 
     fun dismissDialog() {
-        _currentDialog.value = WorkoutLogDialog.NoDialog
+        currentDialog = WorkoutLogDialog.NoDialog
     }
 }
 
 @Composable
-fun rememberWorkoutLogDialogState() = remember { WorkoutLogDialogState() }
+fun rememberWorkoutLogDialogState(listener: WorkoutLogDialogListener) = remember { WorkoutLogDialogState(listener) }
 
 data class EditExerciseDialogState(
     private val sets: List<ExerciseSet>,

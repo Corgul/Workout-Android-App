@@ -10,6 +10,9 @@ import com.example.workout_log.domain.use_cases.workout_log.ExerciseBottomSheetU
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutBottomSheetUseCases
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutLogUseCases
 import com.example.workout_log.domain.util.WorkoutAppLogger
+import com.example.workout_log.presentation.workoutlog.state.WorkoutLogCardListener
+import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialogListener
+import com.example.workout_log.presentation.workoutlog.state.WorkoutLogSnackbarListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +29,7 @@ class WorkoutLogViewModel @Inject constructor(
     private val exerciseBottomSheetUseCases: ExerciseBottomSheetUseCases,
     private val workoutBottomSheetUseCases: WorkoutBottomSheetUseCases,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : ViewModel(), WorkoutLogSnackbarListener, WorkoutLogDialogListener, WorkoutLogCardListener {
     private val _state = mutableStateOf(WorkoutLogState())
     val state: State<WorkoutLogState> = _state
 
@@ -59,7 +62,7 @@ class WorkoutLogViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun onAddSetButtonClicked(exerciseAndExerciseSets: ExerciseAndExerciseSets) {
+    override fun onAddSetButtonClicked(exerciseAndExerciseSets: ExerciseAndExerciseSets) {
         viewModelScope.launch {
             // In case the set list is out of order, get the max set number
             val setNumber = exerciseAndExerciseSets.sets.map { it.setNumber }.maxOf { it } + 1
@@ -67,7 +70,7 @@ class WorkoutLogViewModel @Inject constructor(
         }
     }
 
-    fun onWeightChanged(exerciseSet: ExerciseSet, newWeight: Int?) {
+    override fun onWeightChanged(exerciseSet: ExerciseSet, newWeight: Int?) {
         if (newWeight == null) {
             return
         }
@@ -76,7 +79,7 @@ class WorkoutLogViewModel @Inject constructor(
         }
     }
 
-    fun onRepsChanged(exerciseSet: ExerciseSet, newReps: Int?) {
+    override fun onRepsChanged(exerciseSet: ExerciseSet, newReps: Int?) {
         if (newReps == null) {
             return
         }
@@ -105,26 +108,26 @@ class WorkoutLogViewModel @Inject constructor(
         }
     }
 
-    fun deleteWorkoutSnackbarDismissed() {
+    override fun deleteWorkoutSnackbarDismissed() {
         viewModelScope.launch {
             deleteWorkout(cachedWorkoutLogState?.workout)
             cachedWorkoutLogState = null
         }
     }
 
-    fun deleteWorkoutSnackbarUndoClicked() {
+    override fun deleteWorkoutSnackbarUndoClicked() {
         _state.value = cachedWorkoutLogState?.copy() ?: WorkoutLogState()
         cachedWorkoutLogState = null
     }
 
-    fun deleteExerciseSnackbarDismissed(exercise: Exercise) {
+    override fun deleteExerciseSnackbarDismissed(exercise: Exercise) {
         viewModelScope.launch {
             deleteExercise(exercise)
             cachedExercisesAndSets = null
         }
     }
 
-    fun deleteExerciseSnackbarUndoClicked() {
+    override fun deleteExerciseSnackbarUndoClicked() {
         cachedExercisesAndSets?.let { cachedExercisesAndSets -> _state.value = state.value.copy(exercisesAndSets = cachedExercisesAndSets) }
         cachedExercisesAndSets = null
     }
@@ -169,27 +172,27 @@ class WorkoutLogViewModel @Inject constructor(
     /**
      * The list of exercises will need their positions rearranged
      */
-    fun onReorderExerciseDialogConfirmed(exercises: List<Exercise>) {
+    override fun onReorderExerciseDialogConfirmed(exercises: List<Exercise>) {
         viewModelScope.launch {
             exercises.toMutableList().forEachIndexed { index, exercise -> exercise.exercisePosition = index + 1 }
             logUseCases.updateExercises(exercises)
         }
     }
 
-    fun onEditWorkoutNameDialogConfirmed(newWorkoutName: String, workout: Workout) {
+    override fun onEditWorkoutNameDialogConfirmed(newWorkoutName: String, workout: Workout) {
         viewModelScope.launch {
             logUseCases.updateWorkoutName(workout, newWorkoutName)
         }
     }
 
-    fun onEditExerciseDialogConfirmed(exerciseSets: List<ExerciseSet>) {
+    override fun onEditExerciseDialogConfirmed(exerciseSets: List<ExerciseSet>) {
         viewModelScope.launch {
             exerciseSets.toMutableList().forEachIndexed { index, exerciseSet -> exerciseSet.setNumber = index + 1 }
             exerciseBottomSheetUseCases.updateSets(exerciseSets)
         }
     }
 
-    fun onEditExerciseDialogDelete(exerciseAndExerciseSets: ExerciseAndExerciseSets, setsToDelete: List<ExerciseSet>) {
+    override fun onEditExerciseDialogDelete(exerciseAndExerciseSets: ExerciseAndExerciseSets, setsToDelete: List<ExerciseSet>) {
         viewModelScope.launch {
             if (setsToDelete.size == exerciseAndExerciseSets.sets.size) {
                 deleteExercise(exerciseAndExerciseSets.exercise)

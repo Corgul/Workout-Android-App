@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -17,30 +14,26 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.workout_log.R
+import com.example.workout_log.domain.model.Exercise
 import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
-import com.example.workout_log.presentation.util.Screen
 import com.example.workout_log.presentation.util.WorkoutNameHelper
-import com.example.workout_log.presentation.util.extensions.onFocusSelectAll
 import com.example.workout_log.presentation.workoutlog.components.*
-import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialog
-import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialogState
-import com.example.workout_log.presentation.workoutlog.state.rememberWorkoutLogDialogState
-import com.example.workout_log.ui.theme.*
+import com.example.workout_log.presentation.workoutlog.state.*
+import com.example.workout_log.ui.theme.Green200
+import com.example.workout_log.ui.theme.Grey800
+import com.example.workout_log.ui.theme.Indigo700
+import com.example.workout_log.ui.theme.Shapes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 
 @ExperimentalMaterialApi
 @ExperimentalCoroutinesApi
@@ -50,81 +43,123 @@ fun WorkoutLogScreen(
     workoutDate: Long,
     viewModel: WorkoutLogViewModel = hiltViewModel()
 ) {
-    ModalBottomSheet(navController, workoutDate, viewModel)
+    val workoutLogState = viewModel.state.value
+    val workoutLogViewState = rememberWorkoutLogViewState(
+        navController = navController,
+        context = LocalContext.current,
+        workoutDateLong = workoutDate,
+        snackbarListener = viewModel,
+        cardListener = viewModel,
+        key = workoutDate
+    )
+    val workoutLogDialogState = rememberWorkoutLogDialogState(viewModel)
+    WorkoutLogScreenContent(
+        workoutLogState = workoutLogState,
+        workoutLogViewState = workoutLogViewState,
+        workoutLogDialogState = workoutLogDialogState,
+        deleteExerciseClicked = viewModel::deleteExerciseClicked,
+        deleteWorkoutClicked = viewModel::deleteWorkoutClicked
+    )
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
-@ExperimentalMaterialApi
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ModalBottomSheet(navController: NavController, workoutDate: Long, viewModel: WorkoutLogViewModel) {
-    val modalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
-    val coroutineScope = rememberCoroutineScope()
-    val scaffoldState = rememberScaffoldState()
-    val workoutLogDialogState = rememberWorkoutLogDialogState()
-    var currentBottomSheet by remember { mutableStateOf<WorkoutLogBottomSheet>(WorkoutLogBottomSheet.WorkoutBottomSheet) }
-    val workout = viewModel.state.value.workout
-    val exercisesAndSets = viewModel.state.value.exercisesAndSets
-
-    val openBottomSheet: (bottomSheet: WorkoutLogBottomSheet) -> Unit = {
-        currentBottomSheet = it
-        coroutineScope.launch { modalBottomSheetState.show() }
+fun WorkoutLogScreenContent(
+    workoutLogState: WorkoutLogState,
+    workoutLogViewState: WorkoutLogViewState,
+    workoutLogDialogState: WorkoutLogDialogState,
+    deleteExerciseClicked: (Exercise) -> Unit,
+    deleteWorkoutClicked: (Workout?) -> Unit
+) {
+    WorkoutLogModalBottomSheets(
+        workout = workoutLogState.workout,
+        exercisesAndSets = workoutLogState.exercisesAndSets,
+        workoutLogViewState = workoutLogViewState,
+        workoutDialogVisibilityModifier = workoutLogDialogState,
+        deleteExerciseClicked = { exercise: Exercise ->
+            workoutLogViewState.showDeleteExerciseSnackbar(exercise)
+            deleteExerciseClicked(exercise)
+        },
+        deleteWorkoutClicked = { workout: Workout? ->
+            workoutLogViewState.showDeleteWorkoutSnackbar()
+            deleteWorkoutClicked(workout)
+        }
+    ) {
+        WorkoutLogScaffold2(
+            workoutLogViewState = workoutLogViewState,
+            title = WorkoutNameHelper.getWorkoutName(workoutLogState.workout?.workoutName, workoutLogViewState.workoutDateLong),
+            showMenuButton = workoutLogState.workout != null
+        ) {
+            WorkoutLogDialogs(
+                workoutLogDialogState = workoutLogDialogState,
+                workout = workoutLogState.workout,
+                exercisesAndSets = workoutLogState.exercisesAndSets
+            )
+            WorkoutLog2(
+                exercisesAndSets = workoutLogState.exercisesAndSets,
+                workoutLogViewState = workoutLogViewState
+            )
+        }
     }
+}
 
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun WorkoutLogModalBottomSheets(
+    workout: Workout?,
+    exercisesAndSets: List<ExerciseAndExerciseSets>,
+    workoutLogViewState: WorkoutLogViewState,
+    workoutDialogVisibilityModifier: WorkoutDialogVisibilityModifier,
+    deleteExerciseClicked: (Exercise) -> Unit,
+    deleteWorkoutClicked: (Workout?) -> Unit,
+    content: @Composable () -> Unit
+) {
     ModalBottomSheetLayout(
-        sheetState = modalBottomSheetState,
+        sheetState = workoutLogViewState.modalBottomSheetState,
         sheetContent = {
-            if (currentBottomSheet is WorkoutLogBottomSheet.ExerciseBottomSheet) {
+            if (workoutLogViewState.currentBottomSheet is WorkoutLogBottomSheet.ExerciseBottomSheet) {
                 ExerciseBottomSheet(
-                    viewModel = viewModel,
-                    exerciseAndExerciseSets = (currentBottomSheet as WorkoutLogBottomSheet.ExerciseBottomSheet).exerciseAndExerciseSets,
-                    coroutineScope = coroutineScope,
-                    bottomSheetState = modalBottomSheetState,
-                    scaffoldState = scaffoldState,
-                    workoutLogDialogState = workoutLogDialogState
+                    exerciseAndExerciseSets = (workoutLogViewState.currentBottomSheet as WorkoutLogBottomSheet.ExerciseBottomSheet).exerciseAndExerciseSets,
+                    hideBottomSheet = workoutLogViewState::hideBottomSheet,
+                    showEditExerciseDialog = workoutDialogVisibilityModifier::showEditExerciseDialog,
+                    deleteExerciseClicked = deleteExerciseClicked
                 )
-            } else {
+            } else if (workoutLogViewState.currentBottomSheet is WorkoutLogBottomSheet.WorkoutBottomSheet) {
                 WorkoutBottomSheet(
-                    viewModel = viewModel,
                     workout = workout,
                     exercisesAndSets.map { it.exercise },
-                    coroutineScope = coroutineScope,
-                    bottomSheetState = modalBottomSheetState,
-                    scaffoldState = scaffoldState,
-                    workoutLogDialogState = workoutLogDialogState
+                    hideBottomSheet = workoutLogViewState::hideBottomSheet,
+                    showEditWorkoutNameDialog = workoutDialogVisibilityModifier::showEditWorkoutNameDialog,
+                    showReorderExerciseDialog = workoutDialogVisibilityModifier::showReorderExerciseDialog,
+                    showReorderExerciseSnackbar = workoutLogViewState::showReorderExerciseSnackbar,
+                    deleteWorkoutClicked = deleteWorkoutClicked
                 )
+            } else {
+                Spacer(modifier = Modifier.height(1.dp))
             }
         }
     ) {
-        WorkoutLogScaffold(
-            navController = navController,
-            viewModel = viewModel,
-            workoutDate = workoutDate,
-            openBottomSheet = openBottomSheet,
-            scaffoldState = scaffoldState,
-            workoutLogDialogsState = workoutLogDialogState,
-            workout = workout,
-            exercisesAndSets = exercisesAndSets
-        )
+        content()
     }
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @ExperimentalMaterialApi
 @Composable
-fun WorkoutLogScaffold(
-    navController: NavController,
-    viewModel: WorkoutLogViewModel,
-    workoutDate: Long,
-    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit,
-    scaffoldState: ScaffoldState,
-    workoutLogDialogsState: WorkoutLogDialogState,
-    workout: Workout?,
-    exercisesAndSets: List<ExerciseAndExerciseSets>
+fun WorkoutLogScaffold2(
+    workoutLogViewState: WorkoutLogViewState,
+    title: String,
+    showMenuButton: Boolean,
+    content: @Composable () -> Unit
 ) {
     Scaffold(
-        scaffoldState = scaffoldState,
+        scaffoldState = workoutLogViewState.scaffoldState,
         topBar = {
-            WorkoutLogTopBar(workout, openBottomSheet, workoutDate)
+            WorkoutLogTopBar(
+                title,
+                workoutLogViewState::openWorkoutBottomSheet,
+                showMenuButton
+            )
         },
         snackbarHost = {
             SnackbarHost(it) { data ->
@@ -136,107 +171,113 @@ fun WorkoutLogScaffold(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    navController.navigate(Screen.AddExerciseScreen.route + "/${workoutDate}")
-                },
+                onClick = workoutLogViewState::navigateToAddExercisesScreen,
                 modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
             ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(id = R.string.workout_log_fab_content_description))
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(id = R.string.workout_log_fab_content_description)
+                )
             }
         }
     ) {
-        when (workoutLogDialogsState.currentDialog.value) {
-            is WorkoutLogDialog.ReorderExerciseDialog -> {
-                ReorderExercisesDialog(
-                    exercisesAndSets.map { it.exercise },
-                    onDismiss = workoutLogDialogsState::dismissDialog,
-                    onConfirm = viewModel::onReorderExerciseDialogConfirmed
-                )
-            }
-            is WorkoutLogDialog.EditWorkoutNameDialog -> {
-                EditWorkoutNameDialog(
-                    workout = workout,
-                    onDismiss = workoutLogDialogsState::dismissDialog,
-                    onConfirm = viewModel::onEditWorkoutNameDialogConfirmed
-                )
-            }
-            is WorkoutLogDialog.EditExerciseDialog -> {
-                EditExerciseDialog(
-                    exerciseAndSets = (workoutLogDialogsState.currentDialog.value as WorkoutLogDialog.EditExerciseDialog).exerciseAndExerciseSets,
-                    onDismiss = workoutLogDialogsState::dismissDialog,
-                    onConfirm = viewModel::onEditExerciseDialogConfirmed,
-                    onDelete = viewModel::onEditExerciseDialogDelete
-                )
-            }
-        }
-
-        WorkoutLog(
-            exercisesAndSets,
-            viewModel::onAddSetButtonClicked,
-            viewModel::onWeightChanged,
-            viewModel::onRepsChanged,
-            openBottomSheet
-        )
+        content()
     }
 }
 
 @Composable
-fun WorkoutLogTopBar(workout: Workout?, openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit, workoutDate: Long) {
+fun WorkoutLogTopBar(workoutName: String, openBottomSheet: () -> Unit, showMenuButton: Boolean) {
     TopAppBar(
-        title = { Text(text = WorkoutNameHelper.getWorkoutName(workout?.workoutName, workoutDate)) },
+        title = { Text(text = workoutName) },
         actions = {
-            if (workout != null) {
-                IconButton(onClick = { openBottomSheet(WorkoutLogBottomSheet.WorkoutBottomSheet) }) {
-                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(id = R.string.workout_bottom_sheet_menu_content_description))
+            if (showMenuButton) {
+                IconButton(onClick = openBottomSheet) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(id = R.string.workout_bottom_sheet_menu_content_description)
+                    )
                 }
             }
         }
     )
 }
 
-@ExperimentalMaterialApi
 @Composable
-fun WorkoutLog(
-    exercisesAndSets: List<ExerciseAndExerciseSets>,
-    onAddSetButtonClicked: (exerciseAndSets: ExerciseAndExerciseSets) -> Unit,
-    onWeightChanged: (exerciseSet: ExerciseSet, newWeight: Int?) -> Unit,
-    onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int?) -> Unit,
-    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
+fun WorkoutLogDialogs(
+    workoutLogDialogState: WorkoutLogDialogState,
+    workout: Workout?,
+    exercisesAndSets: List<ExerciseAndExerciseSets>
 ) {
-    WorkoutLogCards(exercisesAndSets, onAddSetButtonClicked, onWeightChanged, onRepsChanged, openBottomSheet)
+    when (workoutLogDialogState.currentDialog) {
+        is WorkoutLogDialog.ReorderExerciseDialog -> {
+            ReorderExercisesDialog(
+                exercisesAndSets.map { it.exercise },
+                onDismiss = workoutLogDialogState::dismissDialog,
+                onConfirm = workoutLogDialogState::onReorderExerciseDialogConfirmed
+            )
+        }
+        is WorkoutLogDialog.EditWorkoutNameDialog -> {
+            EditWorkoutNameDialog(
+                workout = workout,
+                onDismiss = workoutLogDialogState::dismissDialog,
+                onConfirm = workoutLogDialogState::onEditWorkoutNameDialogConfirmed
+            )
+        }
+        is WorkoutLogDialog.EditExerciseDialog -> {
+            EditExerciseDialog(
+                exerciseAndSets = (workoutLogDialogState.currentDialog as WorkoutLogDialog.EditExerciseDialog).exerciseAndExerciseSets,
+                onDismiss = workoutLogDialogState::dismissDialog,
+                onConfirm = workoutLogDialogState::onEditExerciseDialogConfirmed,
+                onDelete = workoutLogDialogState::onEditExerciseDialogDelete
+            )
+        }
+    }
 }
 
-@ExperimentalMaterialApi
 @Composable
-fun WorkoutLogCards(
+fun WorkoutLog2(
     exercisesAndSets: List<ExerciseAndExerciseSets>,
-    onAddSetButtonClicked: (exerciseAndSets: ExerciseAndExerciseSets) -> Unit,
-    onWeightChanged: (exerciseSet: ExerciseSet, newWeight: Int?) -> Unit,
-    onRepsChanged: (exerciseSet: ExerciseSet, newReps: Int?) -> Unit,
-    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
+    workoutLogViewState: WorkoutLogViewState
+) {
+    WorkoutLogCards2(exercisesAndSets, workoutLogViewState)
+}
+
+@Composable
+fun WorkoutLogCards2(
+    exercisesAndSets: List<ExerciseAndExerciseSets>,
+    workoutLogViewState: WorkoutLogViewState
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(exercisesAndSets) { exerciseAndSets ->
-            var expanded by remember { mutableStateOf(true) }
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp), shape = RoundedCornerShape(12.dp),
-                elevation = 6.dp
-            ) {
-                Column(Modifier.clickable { expanded = !expanded }) {
-                    ExerciseNameRow(exerciseAndSets, openBottomSheet)
-                    AnimatedVisibility(visible = expanded) {
-                        Column {
-                            ExerciseHeaderRow()
+            WorkoutLogCard(exerciseAndSets = exerciseAndSets, workoutLogViewState = workoutLogViewState)
+        }
+    }
+}
 
-                            exerciseAndSets.sets.forEach {
-                                ExerciseSetRow(it, onWeightChanged, onRepsChanged)
-                            }
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun WorkoutLogCard(
+    exerciseAndSets: ExerciseAndExerciseSets,
+    workoutLogViewState: WorkoutLogViewState
+) {
+    var expanded by remember { mutableStateOf(true) }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp), shape = RoundedCornerShape(12.dp),
+        elevation = 6.dp
+    ) {
+        Column(Modifier.clickable { expanded = !expanded }) {
+            ExerciseNameRow(exerciseAndSets, workoutLogViewState::openExerciseBottomSheet)
+            AnimatedVisibility(visible = expanded) {
+                Column {
+                    ExerciseHeaderRow()
 
-                            AddSetButton(exerciseAndSets, onAddSetButtonClicked)
-                        }
+                    exerciseAndSets.sets.forEach {
+                        ExerciseSetRow(it, workoutLogViewState::onWeightChanged, workoutLogViewState::onRepsChanged)
                     }
+
+                    AddSetButton(exerciseAndSets, workoutLogViewState::onAddSetButtonClicked)
                 }
             }
         }
@@ -247,7 +288,7 @@ fun WorkoutLogCards(
 @Composable
 fun ExerciseNameRow(
     exerciseAndSets: ExerciseAndExerciseSets,
-    openBottomSheet: (bottomSheetType: WorkoutLogBottomSheet) -> Unit
+    openBottomSheet: (ExerciseAndExerciseSets) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -261,9 +302,12 @@ fun ExerciseNameRow(
             style = MaterialTheme.typography.h6,
         )
         IconButton(onClick = {
-            openBottomSheet(WorkoutLogBottomSheet.ExerciseBottomSheet(exerciseAndSets))
+            openBottomSheet(exerciseAndSets)
         }) {
-            Icon(imageVector = Icons.Default.MoreVert, contentDescription = stringResource(id = R.string.exercise_bottom_sheet_menu_content_description))
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(id = R.string.exercise_bottom_sheet_menu_content_description)
+            )
         }
     }
 }
@@ -338,52 +382,6 @@ fun ExerciseSetRow(
         }
     }
 }
-
-@Composable
-fun WorkoutLogTextField(
-    textFieldValue: MutableState<TextFieldValue>,
-    modifier: Modifier,
-    isNumberTextField: Boolean,
-    colors: TextFieldColors = workoutLogTextFieldColors(),
-    textStyle: TextStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
-    onValueChanged: (TextFieldValue) -> Unit
-) {
-    val customTextSelectionColors = TextSelectionColors(
-        handleColor = Indigo400,
-        backgroundColor = Indigo200.copy(alpha = 0.4f)
-    )
-    CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors) {
-        val keyboardOptions =
-            if (isNumberTextField) KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number) else KeyboardOptions.Default
-        OutlinedTextField(
-            value = textFieldValue.value,
-            modifier = Modifier
-                .then(modifier)
-                .onFocusSelectAll(textFieldValue),
-            maxLines = 1,
-            keyboardOptions = keyboardOptions,
-            shape = RoundedCornerShape(8.dp),
-            colors = colors,
-            textStyle = textStyle,
-            onValueChange = onValueChanged
-        )
-    }
-}
-
-@Composable
-fun workoutLogTextFieldColors(
-    backgroundColor: Color = Grey200,
-    focusedIndicatorColor: Color = Indigo200,
-    unfocusedIndicatorColor: Color = Color.Transparent,
-    cursorColor: Color = Color.White
-): TextFieldColors =
-    TextFieldDefaults.textFieldColors(
-        backgroundColor = backgroundColor,
-        focusedIndicatorColor = focusedIndicatorColor,
-        unfocusedIndicatorColor = unfocusedIndicatorColor,
-        cursorColor = cursorColor
-    )
-
 
 @Composable
 fun AddSetButton(exerciseAndSets: ExerciseAndExerciseSets, onAddSetButtonClicked: (exerciseAndSets: ExerciseAndExerciseSets) -> Unit) {

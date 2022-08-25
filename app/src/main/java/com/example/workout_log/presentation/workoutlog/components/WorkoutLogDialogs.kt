@@ -23,9 +23,7 @@ import com.example.workout_log.domain.model.ExerciseAndExerciseSets
 import com.example.workout_log.domain.model.ExerciseSet
 import com.example.workout_log.domain.model.Workout
 import com.example.workout_log.domain.util.WorkoutAppLogger
-import com.example.workout_log.presentation.workoutlog.WorkoutLogTextField
 import com.example.workout_log.presentation.workoutlog.state.rememberEditExerciseDialogState
-import com.example.workout_log.presentation.workoutlog.workoutLogTextFieldColors
 import com.example.workout_log.ui.theme.Grey475
 import com.example.workout_log.ui.theme.Grey500
 import org.burnoutcrew.reorderable.ItemPosition
@@ -161,7 +159,7 @@ fun EditExerciseDialog(
         Card(elevation = 8.dp, shape = RoundedCornerShape(12.dp)) {
             Column(modifier = Modifier.background(Grey500)) {
                 Text(
-                    text = stringResource(id = R.string.edit_exercise_dialog_header),
+                    text = stringResource(id = R.string.edit_exercise_dialog_header, exerciseAndSets.exercise.exerciseName),
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, bottom = 8.dp, end = 16.dp)
