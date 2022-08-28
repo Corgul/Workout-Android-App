@@ -38,4 +38,9 @@
     <string name="edit_exercise_dialog_header">Edit $1%s</string>
     <string name="delete_sets_content_description">Delete Sets</string>
 
+    <!-- Add Exercise Screen -->
+    <string name="add_exercise">Add Exercise</string>
+    <string name="back_content_description">Back</string>
+    <string name="add_exercise_top_bar_button">Add (%1$d)</string>
+
 </resources>

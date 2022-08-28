@@ -85,7 +85,7 @@ fun WorkoutLogScreenContent(
             deleteWorkoutClicked(workout)
         }
     ) {
-        WorkoutLogScaffold2(
+        WorkoutLogScaffold(
             workoutLogViewState = workoutLogViewState,
             title = WorkoutNameHelper.getWorkoutName(workoutLogState.workout?.workoutName, workoutLogViewState.workoutDateLong),
             showMenuButton = workoutLogState.workout != null
@@ -95,7 +95,7 @@ fun WorkoutLogScreenContent(
                 workout = workoutLogState.workout,
                 exercisesAndSets = workoutLogState.exercisesAndSets
             )
-            WorkoutLog2(
+            WorkoutLog(
                 exercisesAndSets = workoutLogState.exercisesAndSets,
                 workoutLogViewState = workoutLogViewState
             )
@@ -146,7 +146,7 @@ fun WorkoutLogModalBottomSheets(
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @ExperimentalMaterialApi
 @Composable
-fun WorkoutLogScaffold2(
+fun WorkoutLogScaffold(
     workoutLogViewState: WorkoutLogViewState,
     title: String,
     showMenuButton: Boolean,
@@ -235,15 +235,15 @@ fun WorkoutLogDialogs(
 }
 
 @Composable
-fun WorkoutLog2(
+fun WorkoutLog(
     exercisesAndSets: List<ExerciseAndExerciseSets>,
     workoutLogViewState: WorkoutLogViewState
 ) {
-    WorkoutLogCards2(exercisesAndSets, workoutLogViewState)
+    WorkoutLogCards(exercisesAndSets, workoutLogViewState)
 }
 
 @Composable
-fun WorkoutLogCards2(
+fun WorkoutLogCards(
     exercisesAndSets: List<ExerciseAndExerciseSets>,
     workoutLogViewState: WorkoutLogViewState
 ) {

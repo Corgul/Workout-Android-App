@@ -4,8 +4,7 @@ import com.example.workout_log.domain.model.ExerciseName
 import com.example.workout_log.domain.model.ExerciseType
 
 sealed class AddExerciseEvent {
-    data class ExerciseTypeClicked(val exerciseType: ExerciseType): AddExerciseEvent()
-    data class ExerciseNameClicked(val exerciseName: ExerciseName): AddExerciseEvent()
-    data class OnSaveClicked(val onExercisesSaved: (workoutDateLong: Long) -> Unit): AddExerciseEvent()
-    object OnBackPressed: AddExerciseEvent()
+    data class ExerciseTypeClicked(val exerciseType: ExerciseType) : AddExerciseEvent()
+    data class OnSaveClicked(val selectedExerciseNames: List<ExerciseName>, val onExercisesSaved: (workoutDateLong: Long) -> Unit) :
+        AddExerciseEvent()
 }

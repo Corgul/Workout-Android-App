@@ -6,6 +6,4 @@ import com.example.workout_log.domain.model.ExerciseType
 data class AddExerciseState(
     val exerciseTypes: List<ExerciseType> = emptyList(),
     val exerciseNames: List<ExerciseName> = emptyList(),
-    val selectedExercises: List<ExerciseName> = emptyList(),
-    val exerciseNamesVisibility: Boolean = false
 )

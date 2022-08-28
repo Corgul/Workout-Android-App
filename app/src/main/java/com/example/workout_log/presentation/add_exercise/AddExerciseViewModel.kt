@@ -25,7 +25,6 @@ class AddExerciseViewModel @Inject constructor(
     val state: State<AddExerciseState> = _state
 
     private val workoutDate: LocalDate
-    private val selectedExerciseNames = linkedSetOf<ExerciseName>()
 
     private lateinit var exerciseTypesWithExerciseNames: List<ExerciseTypeWithNames>
 
@@ -55,15 +54,9 @@ class AddExerciseViewModel @Inject constructor(
             is AddExerciseEvent.ExerciseTypeClicked -> {
                 onExerciseTypeClicked(event.exerciseType)
             }
-            is AddExerciseEvent.ExerciseNameClicked -> {
-                onExerciseNameClicked(event.exerciseName)
-            }
-            is AddExerciseEvent.OnBackPressed -> {
-                onBackClicked()
-            }
             is AddExerciseEvent.OnSaveClicked -> {
                 viewModelScope.launch {
-                    saveExercises(event.onExercisesSaved)
+                    saveExercises(event.selectedExerciseNames, event.onExercisesSaved)
                 }
             }
         }
@@ -78,37 +71,15 @@ class AddExerciseViewModel @Inject constructor(
 
         _state.value = state.value.copy(
             exerciseNames = exerciseNameList,
-            exerciseNamesVisibility = true
         )
     }
 
-    private fun onExerciseNameClicked(exerciseName: ExerciseName) {
-        // If the exercise name is selected already and this method is called, then it was de selected
-        if (selectedExerciseNames.contains(exerciseName)) {
-            selectedExerciseNames.remove(exerciseName)
-        } else {
-            selectedExerciseNames.add(exerciseName)
-        }
-
-        _state.value = state.value.copy(
-            selectedExercises = selectedExerciseNames.toList()
-        )
-    }
-
-    private fun onBackClicked() {
-        if (state.value.exerciseNamesVisibility) {
-            _state.value = state.value.copy(
-                exerciseNamesVisibility = false
-            )
-        }
-    }
-
-    private suspend fun saveExercises(onExercisesSaved: (workoutDateLong: Long) -> Unit) {
+    private suspend fun saveExercises(selectedExerciseNames: List<ExerciseName>, onExercisesSaved: (workoutDateLong: Long) -> Unit) {
         val workout = useCases.getWorkoutByDate(workoutDate)
         val workoutId = workout?.workoutId ?: useCases.createWorkout(workoutDate)
         val numberOfExercisesForWorkout = useCases.getNumberOfExercisesForWorkout(workoutId)
 
-        useCases.saveExercises(workoutId, numberOfExercisesForWorkout, selectedExerciseNames.toList())
+        useCases.saveExercises(workoutId, numberOfExercisesForWorkout, selectedExerciseNames)
 
         onExercisesSaved(workoutDate.toEpochDay())
     }
