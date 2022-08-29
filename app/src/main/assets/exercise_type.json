@@ -22,13 +22,5 @@
   {
     "exerciseTypeId": 6,
     "exerciseType": "Triceps"
-  },
-  {
-    "exerciseTypeId": 7,
-    "exerciseType": "Abs"
-  },
-  {
-    "exerciseTypeId": 8,
-    "exerciseType": "Cardio"
   }
 ]

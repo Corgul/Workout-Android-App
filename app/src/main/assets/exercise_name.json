@@ -25,6 +25,16 @@
     "exerciseTypeName": "Chest"
   },
   {
+    "exerciseTypeId": 1,
+    "exerciseName": "Cable Crossover",
+    "exerciseTypeName": "Chest"
+  },
+  {
+    "exerciseTypeId": 1,
+    "exerciseName": "Chest Fly",
+    "exerciseTypeName": "Chest"
+  },
+  {
     "exerciseTypeId": 2,
     "exerciseName": "Dumbbell Curl",
     "exerciseTypeName": "Biceps"
@@ -40,6 +50,11 @@
     "exerciseTypeName": "Biceps"
   },
   {
+    "exerciseTypeId": 2,
+    "exerciseName": "Preacher Curl",
+    "exerciseTypeName": "Biceps"
+  },
+  {
     "exerciseTypeId": 3,
     "exerciseName": "Lat Pull Down",
     "exerciseTypeName": "Back"
@@ -51,7 +66,17 @@
   },
   {
     "exerciseTypeId": 3,
+    "exerciseName": "Chin Up",
+    "exerciseTypeName": "Back"
+  },
+  {
+    "exerciseTypeId": 3,
     "exerciseName": "Seated Cable Row",
+    "exerciseTypeName": "Back"
+  },
+  {
+    "exerciseTypeId": 3,
+    "exerciseName": "Bent Over Row",
     "exerciseTypeName": "Back"
   },
   {
@@ -75,6 +100,31 @@
     "exerciseTypeName": "Legs"
   },
   {
+    "exerciseTypeId": 4,
+    "exerciseName": "Front Squat",
+    "exerciseTypeName": "Legs"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseName": "Bulgarian Split Squat",
+    "exerciseTypeName": "Legs"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseName": "Hip Thrust",
+    "exerciseTypeName": "Legs"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseName": "Leg Extension",
+    "exerciseTypeName": "Legs"
+  },
+  {
+    "exerciseTypeId": 4,
+    "exerciseName": "Standing Calf Raise",
+    "exerciseTypeName": "Legs"
+  },
+  {
     "exerciseTypeId": 5,
     "exerciseName": "Overhead Press",
     "exerciseTypeName": "Shoulders"
@@ -90,13 +140,23 @@
     "exerciseTypeName": "Shoulders"
   },
   {
+    "exerciseTypeId": 5,
+    "exerciseName": "Face Pull",
+    "exerciseTypeName": "Shoulders"
+  },
+  {
+    "exerciseTypeId": 5,
+    "exerciseName": "Shrug",
+    "exerciseTypeName": "Shoulders"
+  },
+  {
     "exerciseTypeId": 6,
     "exerciseName": "Cable Tricep Extension",
     "exerciseTypeName": "Triceps"
   },
   {
     "exerciseTypeId": 6,
-    "exerciseName": "Bench Dips",
+    "exerciseName": "Tricep Dips",
     "exerciseTypeName": "Triceps"
   },
   {
@@ -105,28 +165,13 @@
     "exerciseTypeName": "Triceps"
   },
   {
-    "exerciseTypeId": 7,
-    "exerciseName": "Crunch",
-    "exerciseTypeName": "Abs"
+    "exerciseTypeId": 6,
+    "exerciseName": "Skullcrusher",
+    "exerciseTypeName": "Triceps"
   },
   {
-    "exerciseTypeId": 7,
-    "exerciseName": "Plank",
-    "exerciseTypeName": "Abs"
-  },
-  {
-    "exerciseTypeId": 7,
-    "exerciseName": "Lying Leg Raise",
-    "exerciseTypeName": "Abs"
-  },
-  {
-    "exerciseTypeId": 8,
-    "exerciseName": "Treadmill",
-    "exerciseTypeName": "Cardio"
-  },
-  {
-    "exerciseTypeId": 8,
-    "exerciseName": "Bicycle",
-    "exerciseTypeName": "Cardio"
+    "exerciseTypeId": 6,
+    "exerciseName": "Tricep Pushdown",
+    "exerciseTypeName": "Triceps"
   }
 ]
