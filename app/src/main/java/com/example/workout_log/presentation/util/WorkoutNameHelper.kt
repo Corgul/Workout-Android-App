@@ -1,6 +1,6 @@
 package com.example.workout_log.presentation.util
 
-import com.example.workout_log.domain.util.formatDate
+import com.example.workout_log.domain.util.extensions.formatDate
 import java.time.LocalDate
 
 object WorkoutNameHelper {

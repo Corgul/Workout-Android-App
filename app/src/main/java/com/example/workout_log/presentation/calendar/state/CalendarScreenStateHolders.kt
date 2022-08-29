@@ -10,7 +10,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.workout_log.R
 import com.example.workout_log.domain.model.Workout
-import com.example.workout_log.domain.util.formatDate
+import com.example.workout_log.domain.util.extensions.formatDate
 import com.example.workout_log.presentation.util.Screen
 import io.github.boguszpawlowski.composecalendar.CalendarState
 import io.github.boguszpawlowski.composecalendar.selection.DynamicSelectionState
