@@ -1,6 +1,7 @@
 package com.example.workout_log.presentation.calendar.state
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.*
@@ -62,7 +63,7 @@ data class CalendarScreenState(
         if (selectedDate == null) {
             showSnackbar(context.resources.getString(R.string.add_new_workout_button_snackbar))
         } else {
-            showSnackbar(context.resources.getString(R.string.add_exercises_for_workout_snackbar, selectedDate.formatDate()))
+            Toast.makeText(context, context.resources.getString(R.string.add_exercises_for_workout_snackbar, selectedDate.formatDate()), Toast.LENGTH_SHORT).show()
             navigateToWorkoutScreen(selectedDate)
         }
     }
