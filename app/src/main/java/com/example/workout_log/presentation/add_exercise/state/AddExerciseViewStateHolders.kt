@@ -44,8 +44,6 @@ data class AddExerciseViewState(
         exerciseNamesVisibility = true
     }
 
-    fun isExerciseNameSelected(exerciseName: ExerciseName) = selectedExercises.contains(exerciseName)
-
     fun getSelectedExercisesList() = selectedExercises.toList()
 }
 

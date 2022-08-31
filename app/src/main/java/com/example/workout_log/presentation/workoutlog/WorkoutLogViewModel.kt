@@ -14,11 +14,10 @@ import com.example.workout_log.presentation.workoutlog.state.WorkoutLogCardListe
 import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialogListener
 import com.example.workout_log.presentation.workoutlog.state.WorkoutLogSnackbarListener
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -40,6 +39,9 @@ class WorkoutLogViewModel @Inject constructor(
     // Update the exercises and sets based on the currently selected workout
     private val workoutWithExercisesAndSets: Flow<WorkoutWithExercisesAndSets?>
 
+    private var deleteWorkoutJob: Job? = null
+    private var deleteExerciseJob: Job? = null
+
     init {
         val workoutDateLong = savedStateHandle.get<Long>("workoutDate") ?: LocalDate.now().toEpochDay()
         workoutDate = LocalDate.ofEpochDay(workoutDateLong)
@@ -57,9 +59,30 @@ class WorkoutLogViewModel @Inject constructor(
             }
             WorkoutAppLogger.d("Got new exercises and sets")
             WorkoutAppLogger.d("${_state.value.workout?.workoutName}")
+            if (deleteWorkoutJob != null) {
+                deleteExerciseJob?.cancel()
+                deleteWorkoutJob?.join()
+                deleteWorkoutJob = null
+                deleteExerciseJob = null
+                return@onEach
+            }
+            if (deleteExerciseJob != null) {
+                deleteExerciseJob?.join()
+                deleteExerciseJob = null
+                return@onEach
+            }
             _state.value = WorkoutLogState(workoutWithExercisesAndSets.getExercisesAndSets(), workoutWithExercisesAndSets.workout)
             WorkoutAppLogger.d("${_state.value.workout?.workoutName}")
         }.launchIn(viewModelScope)
+    }
+
+    fun onStop() {
+        viewModelScope.launch {
+            deleteWorkoutJob?.join()
+            deleteExerciseJob?.join()
+            deleteWorkoutJob = null
+            deleteExerciseJob = null
+        }
     }
 
     override fun onAddSetButtonClicked(exerciseAndExerciseSets: ExerciseAndExerciseSets) {
@@ -93,24 +116,41 @@ class WorkoutLogViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
+        deleteWorkoutJob = viewModelScope.launch {
             cachedWorkoutLogState = state.value
             // Hide and cache the workout by setting it to nothing to give the user an opportunity to undo before deleting
             _state.value = WorkoutLogState()
+            deleteExerciseJob?.join()
+            deleteExerciseJob = null
+            deleteWorkoutDelayed()
         }
     }
 
+    private suspend fun deleteWorkoutDelayed() = withContext(Dispatchers.IO) {
+        delay(SNACKBAR_DURATION)
+        deleteWorkout(cachedWorkoutLogState?.workout)
+        cachedWorkoutLogState = null
+    }
+
     fun deleteExerciseClicked(exercise: Exercise) {
-        viewModelScope.launch {
+        deleteExerciseJob = viewModelScope.launch {
+            deleteExerciseJob?.join()
             val exerciseListWithRemovedExercise = state.value.exercisesAndSets.filter { it.exercise.exerciseId != exercise.exerciseId }
             cachedExercisesAndSets = state.value.exercisesAndSets
             _state.value = state.value.copy(exercisesAndSets = exerciseListWithRemovedExercise)
+            deleteExerciseDelayed(exercise)
         }
+    }
+
+    private suspend fun deleteExerciseDelayed(exercise: Exercise) = withContext(Dispatchers.IO) {
+        delay(SNACKBAR_DURATION)
+        deleteExercise(exercise)
+        cachedExercisesAndSets = null
     }
 
     override fun deleteWorkoutSnackbarDismissed() {
         viewModelScope.launch {
-            deleteWorkout(cachedWorkoutLogState?.workout)
+            deleteWorkoutJob = null
             cachedWorkoutLogState = null
         }
     }
@@ -118,16 +158,23 @@ class WorkoutLogViewModel @Inject constructor(
     override fun deleteWorkoutSnackbarUndoClicked() {
         _state.value = cachedWorkoutLogState?.copy() ?: WorkoutLogState()
         cachedWorkoutLogState = null
+        deleteWorkoutJob?.cancel()
     }
 
     override fun deleteExerciseSnackbarDismissed(exercise: Exercise) {
         viewModelScope.launch {
-            deleteExercise(exercise)
+            deleteExerciseJob = null
             cachedExercisesAndSets = null
         }
     }
 
     override fun deleteExerciseSnackbarUndoClicked() {
+        deleteExerciseJob?.cancel()
+        if (deleteWorkoutJob != null) {
+            cachedExercisesAndSets?.let { cachedWorkoutLogState = cachedWorkoutLogState?.copy(exercisesAndSets = it) }
+            cachedExercisesAndSets = null
+            return
+        }
         cachedExercisesAndSets?.let { cachedExercisesAndSets -> _state.value = state.value.copy(exercisesAndSets = cachedExercisesAndSets) }
         cachedExercisesAndSets = null
     }
@@ -217,4 +264,8 @@ class WorkoutLogViewModel @Inject constructor(
         exerciseBottomSheetUseCases.updateSets(newSetList)
     }
     //endregion
+
+    companion object {
+        private const val SNACKBAR_DURATION = 4000L
+    }
 }

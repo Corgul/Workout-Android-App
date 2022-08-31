@@ -53,6 +53,11 @@ fun WorkoutLogScreen(
         key = workoutDate
     )
     val workoutLogDialogState = rememberWorkoutLogDialogState(viewModel)
+    
+    DisposableEffect(viewModel) {
+        onDispose { viewModel.onStop() }
+    }
+    
     WorkoutLogScreenContent(
         workoutLogState = workoutLogState,
         workoutLogViewState = workoutLogViewState,
