@@ -13,8 +13,8 @@ The main page of the app is the calendar page. This page allows you to access an
 that means it has an existing workout. You can add a workout using the floating action `+` button. This page also features an expandable bottom sheet displaying the
 summary for the workout.
 
-[!Calendar](/assets/calendar.png)
-[!Calendar Bottom Sheet](/assets/calendar-bottom-sheet.png)
+![Calendar](assets/calendar.png)
+![Calendar Bottom Sheet](/assets/calendar-bottom-sheet.png)
 
 ### Edit Workout Page
 
@@ -25,9 +25,9 @@ or calendar bottom sheet. Some features on this page include
 * Edit the workout name or delete it
 * Reorder the order that the exercises come in
 
-[!Workout Page](/assets/workout.png)
-[!Workout Bottom Sheet](/assets/workout-bottom-sheet.png)
-[!Reorder Exercise](/assets/reorder-exercise.png)
+![Workout Page](/assets/workout.png)
+![Workout Bottom Sheet](/assets/workout-bottom-sheet.png)
+![Reorder Exercise](/assets/reorder-exercise.png)
 
 ## Implementation
 
