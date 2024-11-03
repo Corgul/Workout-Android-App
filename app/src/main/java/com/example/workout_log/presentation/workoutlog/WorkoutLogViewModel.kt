@@ -5,7 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.workout_log.domain.model.*
+import com.example.workout_log.domain.model.Exercise
+import com.example.workout_log.domain.model.ExerciseAndExerciseSets
+import com.example.workout_log.domain.model.ExerciseSet
+import com.example.workout_log.domain.model.Workout
+import com.example.workout_log.domain.model.WorkoutWithExercisesAndSets
 import com.example.workout_log.domain.use_cases.workout_log.ExerciseBottomSheetUseCases
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutBottomSheetUseCases
 import com.example.workout_log.domain.use_cases.workout_log.WorkoutLogUseCases
@@ -14,10 +18,15 @@ import com.example.workout_log.presentation.workoutlog.state.WorkoutLogCardListe
 import com.example.workout_log.presentation.workoutlog.state.WorkoutLogDialogListener
 import com.example.workout_log.presentation.workoutlog.state.WorkoutLogSnackbarListener
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import javax.inject.Inject
 

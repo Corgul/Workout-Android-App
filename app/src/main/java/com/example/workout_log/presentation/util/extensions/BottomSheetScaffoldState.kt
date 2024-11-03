@@ -14,7 +14,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 @OptIn(ExperimentalMaterialApi::class)
 val BottomSheetScaffoldState.collapsedVisibilityFraction: Float
     get() {
-        val fraction = bottomSheetState.progress.fraction
+        val fraction = bottomSheetState.progress(Collapsed, Expanded)
         val targetValue = bottomSheetState.targetValue
         val currentValue = bottomSheetState.currentValue
 
@@ -29,7 +29,7 @@ val BottomSheetScaffoldState.collapsedVisibilityFraction: Float
 @OptIn(ExperimentalMaterialApi::class)
 val BottomSheetScaffoldState.expandedVisibilityFraction: Float
     get() {
-        val fraction = bottomSheetState.progress.fraction
+        val fraction = bottomSheetState.progress(Collapsed, Expanded)
         val targetValue = bottomSheetState.targetValue
         val currentValue = bottomSheetState.currentValue
 

@@ -1,8 +1,19 @@
 package com.example.workout_log.presentation.workoutlog.state
 
 import android.content.Context
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.SnackbarResult
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.workout_log.R
@@ -19,11 +30,11 @@ data class WorkoutLogViewState(
     private val navController: NavController,
     private val context: Context,
     val workoutDateLong: Long,
+    val modalBottomSheetState: ModalBottomSheetState,
     private val snackbarListener: WorkoutLogSnackbarListener,
     private val workoutLogCardListener: WorkoutLogCardListener
 ) : WorkoutLogCardListener by workoutLogCardListener {
     @OptIn(ExperimentalMaterialApi::class)
-    val modalBottomSheetState: ModalBottomSheetState = ModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     var currentBottomSheet by mutableStateOf<WorkoutLogBottomSheet>(WorkoutLogBottomSheet.NoBottomSheet)
         private set
 
@@ -85,7 +96,8 @@ fun rememberWorkoutLogViewState(
     workoutDateLong: Long,
     snackbarListener: WorkoutLogSnackbarListener,
     cardListener: WorkoutLogCardListener,
+    modalBottomSheetState: ModalBottomSheetState = ModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden, density = LocalDensity.current),
     key: Any
 ) = remember(key) {
-    WorkoutLogViewState(coroutineScope, scaffoldState, navController, context, workoutDateLong, snackbarListener, cardListener)
+    WorkoutLogViewState(coroutineScope, scaffoldState, navController, context, workoutDateLong, modalBottomSheetState, snackbarListener, cardListener)
 }

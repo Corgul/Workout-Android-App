@@ -2,8 +2,11 @@ package com.example.workout_log.domain.model
 
 import android.os.Parcelable
 import androidx.annotation.NonNull
-import androidx.room.*
-import androidx.room.ForeignKey.CASCADE
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
 
 @kotlinx.parcelize.Parcelize
 @Entity(
@@ -13,8 +16,8 @@ import androidx.room.ForeignKey.CASCADE
             entity = Workout::class,
             parentColumns = ["WorkoutID"],
             childColumns = ["WorkoutID"],
-            onDelete = CASCADE,
-            onUpdate = CASCADE
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE
         )
     ],
     indices = [Index("WorkoutID")]
